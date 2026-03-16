@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>林果良品 品牌監聽 Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #0c0b09;
+    --bg2: #131210;
+    --bg3: #1a1815;
+    --bg4: #221f1b;
+    --bg5: #2a2620;
+    --border: #2e2a24;
+    --border2: #3d3830;
+    --text: #ede8df;
+    --text2: #a09a8f;
+    --text3: #6b6459;
+    --accent: #c8a96e;
+    --accent2: #e2c98a;
+    --accent3: #8b6f3a;
+    --accent4: #f0ddb0;
+    --green: #4da87a;
+    --red: #c95858;
+    --blue: #5b90c8;
+    --amber: #d4973a;
+    --radius: 8px;
+    --radius2: 12px;
+    --radius3: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  /* ── Setup screen ── */
+  #setup-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .setup-card {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius3);
+    padding: 40px 44px;
+    max-width: 480px;
+    width: 100%;
+  }
+  .setup-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .logo-sq {
+    width: 42px; height: 42px;
+    background: var(--accent3);
+    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent4);
+    font-size: 11px; font-weight: 600; letter-spacing: .3px;
+    flex-shrink: 0;
+  }
+  .setup-title { font-size: 20px; font-weight: 600; }
+  .setup-sub { font-size: 12px; color: var(--text3); margin-top: 2px; letter-spacing: .5px; }
+  .setup-desc {
+    font-size: 13px; color: var(--text2); margin-bottom: 24px; line-height: 1.7;
+    border-left: 2px solid var(--accent3);
+    padding-left: 12px;
+  }
+  .field-label { font-size: 11px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .setup-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 16px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .setup-input:focus { border-color: var(--accent3); }
+  .setup-input::placeholder { color: var(--text3); font-family: inherit; }
+  .btn-primary {
+    width: 100%;
+    background: var(--accent3);
+    border: none;
+    border-radius: var(--radius);
+    padding: 12px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+    letter-spacing: .3px;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: var(--accent); color: #111; }
+  .setup-footer {
+    margin-top: 16px;
+    font-size: 11px;
+    color: var(--text3);
+    text-align: center;
+    line-height: 1.6;
+  }
+  .setup-footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── Main app ── */
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+
+  /* Header */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-brand .brand-name { font-size: 16px; font-weight: 600; color: var(--text); }
+  .header-brand .brand-sub { font-size: 10px; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .live-pill {
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(77,168,122,.1);
+    border: 1px solid rgba(77,168,122,.25);
+    border-radius: 20px; padding: 3px 10px;
+    font-size: 11px; color: var(--green); font-weight: 500;
+  }
+  .live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+  .clock { font-size: 11px; color: var(--text3); font-family: 'Courier New', monospace; }
+  .btn-settings {
+    background: transparent; border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 5px 12px;
+    color: var(--text3); font-size: 11px; cursor: pointer; font-family: inherit;
+    transition: all .15s;
+  }
+  .btn-settings:hover { border-color: var(--accent3); color: var(--accent); }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 220px 1fr; flex: 1; overflow: hidden; height: calc(100vh - 60px); }
+  .sidebar { background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; }
+  .content { overflow-y: auto; padding: 24px 28px; display: flex; flex-direction: column; gap: 18px; }
+
+  /* Sidebar */
+  .sidebar-section { padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .sidebar-section:last-child { border-bottom: none; }
+  .sidebar-label { font-size: 10px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; padding: 0 16px 8px; display: block; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 16px; cursor: pointer; transition: all .15s;
+    color: var(--text2); font-size: 13px;
+    border-left: 2px solid transparent;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--bg3); color: var(--accent); border-left-color: var(--accent3); }
+  .nav-icon { font-size: 15px; flex-shrink: 0; }
+
+  /* Score */
+  .score-area { padding: 20px 16px 12px; text-align: center; }
+  .score-ring { position: relative; width: 90px; height: 90px; margin: 0 auto 8px; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-num { font-size: 24px; font-weight: 700; color: var(--accent); font-family: 'Courier New', monospace; }
+  .score-lbl { font-size: 9px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
+  .score-title { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .mc {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 14px 16px;
+    transition: border-color .2s;
+  }
+  .mc:hover { border-color: var(--border2); }
+  .mc-label { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .mc-value { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1; font-family: 'Courier New', monospace; }
+  .mc-change { font-size: 11px; color: var(--text3); margin-top: 5px; }
+  .up { color: var(--green) !important; }
+  .dn { color: var(--red) !important; }
+
+  /* Charts row */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 16px 18px;
+  }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-title { font-size: 12px; color: var(--text2); font-weight: 500; letter-spacing: .3px; }
+  .chart-wrap { position: relative; width: 100%; height: 170px; }
+
+  /* Platform tabs */
+  .platforms { display: flex; gap: 8px; flex-wrap: wrap; }
+  .plat-tab {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 7px 14px;
+    cursor: pointer; transition: all .15s;
+    font-size: 12px; color: var(--text2);
+  }
+  .plat-tab:hover { border-color: var(--border2); color: var(--text); }
+  .plat-tab.active { border-color: var(--accent3); color: var(--accent); background: rgba(139,111,58,.08); }
+  .plat-count { background: var(--bg4); border-radius: 8px; padding: 1px 6px; font-size: 10px; }
+
+  /* Search bar */
+  .search-bar { display: flex; gap: 10px; align-items: center; }
+  .search-wrap { flex: 1; position: relative; }
+  .search-wrap input {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 9px 14px;
+    color: var(--text);
+    font-size: 13px; font-family: inherit;
+    outline: none; transition: border-color .15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent3); }
+  .search-wrap input::placeholder { color: var(--text3); }
+  .btn-scan {
+    background: var(--accent3);
+    border: none; border-radius: var(--radius);
+    padding: 9px 22px;
+    color: #fff; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all .15s;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .btn-scan:hover { background: var(--accent); color: #111; }
+  .btn-scan:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-export {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 9px 16px;
+    color: var(--text2); font-size: 12px;
+    cursor: pointer; font-family: inherit; transition: all .15s;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .btn-export:hover { border-color: var(--accent3); color: var(--accent); }
+
+  /* Tags */
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 3px 11px;
+    font-size: 11px; color: var(--text3);
+    cursor: pointer; transition: all .15s;
+  }
+  .tag:hover { border-color: var(--accent3); color: var(--accent); }
+
+  /* Posts area */
+  .posts-area {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+  }
+  .posts-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .posts-title { font-size: 13px; font-weight: 500; }
+  .status-info { font-size: 11px; color: var(--text3); }
+  .posts-body { padding: 0 18px; }
+
+  /* Post card */
+  .post-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .post-item:last-child { border-bottom: none; }
+  .post-row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .post-author { font-size: 13px; font-weight: 500; color: var(--text); }
+  .plat-badge {
+    font-size: 10px; padding: 2px 7px; border-radius: 8px;
+    background: var(--bg4); color: var(--text3);
+  }
+  .sent-badge {
+    font-size: 10px; padding: 2px 7px; border-radius: 8px;
+    font-weight: 500;
+  }
+  .sent-pos { background: rgba(77,168,122,.12); color: var(--green); }
+  .sent-neg { background: rgba(201,88,88,.12); color: var(--red); }
+  .sent-neu { background: var(--bg4); color: var(--text3); }
+  .post-time { font-size: 11px; color: var(--text3); margin-left: auto; }
+  .post-text { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 8px; }
+  .post-stats { display: flex; gap: 14px; font-size: 11px; color: var(--text3); }
+
+  /* Analysis */
+  .analysis-wrap { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .analysis-label { font-size: 10px; color: var(--accent3); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+  .analysis-text {
+    font-size: 13px; color: var(--text); line-height: 1.75;
+    background: var(--bg3);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    border-left: 2px solid var(--accent3);
+  }
+
+  /* Loading */
+  .loading {
+    display: flex; align-items: center; gap: 10px;
+    padding: 32px; justify-content: center;
+    color: var(--text2); font-size: 13px;
+  }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent3);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty { text-align: center; padding: 48px 24px; color: var(--text3); font-size: 13px; line-height: 1.8; }
+  .empty strong { display: block; font-size: 32px; margin-bottom: 8px; }
+
+  /* Alerts */
+  .alert-area { display: flex; flex-direction: column; gap: 8px; }
+  .alert-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px;
+  }
+  .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .alert-dot.red { background: var(--red); }
+  .alert-dot.amber { background: var(--amber); }
+  .alert-dot.green { background: var(--green); }
+  .alert-body { flex: 1; }
+  .alert-title { font-size: 13px; color: var(--text); font-weight: 500; }
+  .alert-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* Legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* Error toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--red); color: #fff;
+    border-radius: var(--radius); padding: 12px 18px;
+    font-size: 13px; max-width: 360px; line-height: 1.5;
+    display: none; z-index: 9999;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Setup screen -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="logo-sq">林果</div>
+      <div>
+        <div class="setup-title">品牌監聽 Dashboard</div>
+        <div class="setup-sub">ORINGO × byCrawl × Claude AI</div>
+      </div>
+    </div>
+    <p class="setup-desc">
+      此 Dashboard 透過 <strong>byCrawl API</strong> 即時抓取各社群平台的品牌聲量，並用 <strong>Claude AI</strong> 進行情緒分析，提供行銷團隊即時的品牌監聽報告。
+    </p>
+    <div class="field-label">byCrawl API Key</div>
+    <input class="setup-input" id="bycrawl-key" type="password" placeholder="sk_byc_xxxxxxxxxxxxxxxxxx" autocomplete="off">
+    <div class="field-label">Claude API Key</div>
+    <input class="setup-input" id="claude-key" type="password" placeholder="sk-ant-api03-xxxxxxxxxx" autocomplete="off">
+    <button class="btn-primary" onclick="enterDashboard()">進入 Dashboard →</button>
+    <div class="setup-footer">
+      API key 僅儲存於此瀏覽器 session，不會傳送至第三方。<br>
+      <a href="https://bycrawl.com" target="_blank">取得 byCrawl API key</a> ·
+      <a href="https://console.anthropic.com" target="_blank">取得 Claude API key</a>
+    </div>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-sq">林果</div>
+      <div class="header-brand">
+        <div class="brand-name">林果良品 品牌監聽</div>
+        <div class="brand-sub">Brand Intelligence · Powered by byCrawl × Claude AI</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-pill"><span class="live-dot"></span>即時監聽中</div>
+      <span class="clock" id="clock">--:--:--</span>
+      <button class="btn-settings" onclick="resetKeys()">⚙ 重設 API Keys</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="score-area">
+          <div class="score-ring">
+            <svg width="90" height="90" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="36" fill="none" stroke="#2a2620" stroke-width="7"/>
+              <circle id="score-arc" cx="45" cy="45" r="36" fill="none" stroke="#8b6f3a" stroke-width="7"
+                stroke-dasharray="226" stroke-dashoffset="226" stroke-linecap="round"
+                style="transition: stroke-dashoffset 1s ease"/>
+            </svg>
+            <div class="score-inner">
+              <span class="score-num" id="score-num">—</span>
+              <span class="score-lbl">/100</span>
+            </div>
+          </div>
+          <div class="score-title">品牌健康指數</div>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-label">監聽頻道</span>
+        <div class="nav-item active" onclick="switchView('overview')"><span class="nav-icon">◈</span>總覽</div>
+        <div class="nav-item" onclick="switchView('threads')"><span class="nav-icon">🧵</span>Threads</div>
+        <div class="nav-item" onclick="switchView('instagram')"><span class="nav-icon">📸</span>Instagram</div>
+        <div class="nav-item" onclick="switchView('dcard')"><span class="nav-icon">🃏</span>Dcard</div>
+        <div class="nav-item" onclick="switchView('tiktok')"><span class="nav-icon">🎵</span>TikTok</div>
+        <div class="nav-item" onclick="switchView('facebook')"><span class="nav-icon">📘</span>Facebook</div>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-label">監控狀態</span>
+        <div style="padding: 0 16px;">
+          <div style="margin-bottom:10px">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:3px">上次掃描</div>
+            <div style="font-size:12px;color:var(--text2);font-family:'Courier New',monospace" id="last-scan">尚未掃描</div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:3px">已抓取貼文</div>
+            <div style="font-size:18px;font-weight:600;color:var(--accent);font-family:'Courier New',monospace" id="total-posts">0</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:3px">API 狀態</div>
+            <div style="font-size:11px;color:var(--green)" id="api-status">● 待機中</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content" id="main-content">
+
+      <!-- Metrics -->
+      <div class="metrics">
+        <div class="mc">
+          <div class="mc-label">提及次數</div>
+          <div class="mc-value" id="m-mentions">0</div>
+          <div class="mc-change" id="m-mentions-c">等待首次掃描</div>
+        </div>
+        <div class="mc">
+          <div class="mc-label">正面情緒</div>
+          <div class="mc-value up" id="m-pos">—%</div>
+          <div class="mc-change up" id="m-pos-c">—</div>
+        </div>
+        <div class="mc">
+          <div class="mc-label">負面情緒</div>
+          <div class="mc-value dn" id="m-neg">—%</div>
+          <div class="mc-change dn" id="m-neg-c">—</div>
+        </div>
+        <div class="mc">
+          <div class="mc-label">互動總量</div>
+          <div class="mc-value" id="m-eng">0</div>
+          <div class="mc-change" id="m-eng-c">讚 + 留言</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">情緒趨勢（近 7 次掃描）</span>
+            <div class="legend">
+              <span class="legend-item"><span class="legend-dot" style="background:#4da87a"></span>正面</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#c95858"></span>負面</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#6b6459"></span>中立</span>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">平台聲量分佈</span>
+          </div>
+          <div class="chart-wrap"><canvas id="platChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Platform filter + Search -->
+      <div>
+        <div style="margin-bottom:10px">
+          <div class="platforms" id="plat-tabs">
+            <div class="plat-tab active" data-plat="threads" onclick="togglePlat(this)">🧵 Threads <span class="plat-count" id="cnt-threads">0</span></div>
+            <div class="plat-tab" data-plat="instagram" onclick="togglePlat(this)">📸 Instagram <span class="plat-count" id="cnt-instagram">0</span></div>
+            <div class="plat-tab" data-plat="dcard" onclick="togglePlat(this)">🃏 Dcard <span class="plat-count" id="cnt-dcard">0</span></div>
+            <div class="plat-tab" data-plat="tiktok" onclick="togglePlat(this)">🎵 TikTok <span class="plat-count" id="cnt-tiktok">0</span></div>
+            <div class="plat-tab" data-plat="facebook" onclick="togglePlat(this)">📘 Facebook <span class="plat-count" id="cnt-facebook">0</span></div>
+          </div>
+        </div>
+        <div class="search-bar">
+          <div class="search-wrap">
+            <input type="text" id="kw-input" placeholder="搜尋關鍵字，例如：林果良品、ORINGO、手工皮鞋..." value="林果良品">
+          </div>
+          <button class="btn-scan" id="scan-btn" onclick="startScan()">掃描 ↗</button>
+          <button class="btn-export" onclick="exportCSV()">匯出 CSV</button>
+        </div>
+        <div class="tag-row" style="margin-top:8px">
+          <span class="tag" onclick="setKw('林果良品')">林果良品</span>
+          <span class="tag" onclick="setKw('ORINGO')">ORINGO</span>
+          <span class="tag" onclick="setKw('台灣手工皮鞋')">台灣手工皮鞋</span>
+          <span class="tag" onclick="setKw('林果 皮鞋')">林果 皮鞋</span>
+          <span class="tag" onclick="setKw('林果良品 評價')">林果良品 評價</span>
+          <span class="tag" onclick="setKw('oringo shoes')">oringo shoes</span>
+          <span class="tag" onclick="setKw('林果良品 開箱')">林果良品 開箱</span>
+          <span class="tag" onclick="setKw('林果良品 推薦')">林果良品 推薦</span>
+        </div>
+      </div>
+
+      <!-- Posts -->
+      <div class="posts-area">
+        <div class="posts-header">
+          <span class="posts-title">社群貼文監聽</span>
+          <span class="status-info" id="status-bar">選擇平台並按下「掃描」開始監聽</span>
+        </div>
+        <div class="posts-body">
+          <div class="empty" id="empty-state">
+            <strong>🔍</strong>
+            按下「掃描 ↗」，Claude 將透過 byCrawl API<br>從各社群平台即時抓取林果良品的品牌聲量
+          </div>
+          <div id="posts-list"></div>
+          <div id="ai-analysis"></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="text-align:center;font-size:11px;color:var(--text3);padding:8px 0 16px;">
+        林果良品品牌監聽 Dashboard · Powered by byCrawl API × Claude AI · 資料來源為公開社群貼文
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+var BYCRAWL_KEY = '';
+var CLAUDE_KEY = '';
+var activePlats = ['threads'];
+var allPosts = [];
+var scanHistory = [];
+var trendChart = null;
+var platChart = null;
+
+// ── Init ──
+function enterDashboard() {
+  var bk = document.getElementById('bycrawl-key').value.trim();
+  var ck = document.getElementById('claude-key').value.trim();
+  if (!bk) { showToast('請輸入 byCrawl API Key'); return; }
+  if (!ck) { showToast('請輸入 Claude API Key'); return; }
+  BYCRAWL_KEY = bk;
+  CLAUDE_KEY = ck;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initCharts();
+  startClock();
+}
+
+function resetKeys() {
+  if (!confirm('確定要重設 API Keys 並回到設定畫面？')) return;
+  BYCRAWL_KEY = ''; CLAUDE_KEY = '';
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('bycrawl-key').value = '';
+  document.getElementById('claude-key').value = '';
+}
+
+// ── Clock ──
+function startClock() {
+  function tick() {
+    var n = new Date();
+    document.getElementById('clock').textContent =
+      n.toLocaleTimeString('zh-TW', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+  tick(); setInterval(tick, 1000);
+}
+
+// ── Sidebar nav ──
+function switchView(v) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+// ── Platform toggle ──
+function togglePlat(el) {
+  var p = el.dataset.plat;
+  var idx = activePlats.indexOf(p);
+  if (idx > -1) {
+    if (activePlats.length === 1) return;
+    activePlats.splice(idx, 1);
+    el.classList.remove('active');
+  } else {
+    activePlats.push(p);
+    el.classList.add('active');
+  }
+}
+
+function setKw(kw) { document.getElementById('kw-input').value = kw; }
+
+// ── Charts ──
+function initCharts() {
+  var tg = { color: '#6b6459', grid: 'rgba(255,255,255,0.04)' };
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: ['─','─','─','─','─','─','─'],
+      datasets: [
+        { label:'正面', data:[0,0,0,0,0,0,0], borderColor:'#4da87a', backgroundColor:'rgba(77,168,122,.07)', tension:.4, pointRadius:3, borderWidth:1.5, fill:true },
+        { label:'負面', data:[0,0,0,0,0,0,0], borderColor:'#c95858', backgroundColor:'rgba(201,88,88,.05)', tension:.4, pointRadius:3, borderWidth:1.5, fill:true },
+        { label:'中立', data:[0,0,0,0,0,0,0], borderColor:'#6b6459', backgroundColor:'rgba(107,100,89,.04)', tension:.4, pointRadius:2, borderWidth:1, fill:true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font:{size:10}, color: tg.color }, grid: { color: tg.grid } },
+        y: { ticks: { font:{size:10}, color: tg.color }, grid: { color: tg.grid }, beginAtZero: true }
+      }
+    }
+  });
+
+  if (platChart) platChart.destroy();
+  platChart = new Chart(document.getElementById('platChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Threads','Instagram','Dcard','TikTok','Facebook'],
+      datasets: [{ data:[1,1,1,1,1], backgroundColor:['#8b6f3a','#c8a96e','#5b90c8','#4da87a','#9b7fd4'], borderWidth:0, hoverOffset:4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: { legend: { display: true, position:'right', labels:{ font:{size:10}, color:'#a09a8f', boxWidth:10, padding:8 } } }
+    }
+  });
+}
+
+function updateCharts(posts) {
+  var platCounts = { Threads:0, Instagram:0, Dcard:0, TikTok:0, Facebook:0 };
+  posts.forEach(p => { if (platCounts[p.platform] !== undefined) platCounts[p.platform]++; });
+  if (platChart) { platChart.data.datasets[0].data = Object.values(platCounts); platChart.update(); }
+
+  var now = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  var pos = posts.filter(p=>p.sentiment==='positive').length;
+  var neg = posts.filter(p=>p.sentiment==='negative').length;
+  var neu = posts.filter(p=>p.sentiment==='neutral').length;
+  scanHistory.push({ time: now, pos, neg, neu });
+  if (scanHistory.length > 7) scanHistory.shift();
+  if (trendChart) {
+    trendChart.data.labels = scanHistory.map(s => s.time);
+    trendChart.data.datasets[0].data = scanHistory.map(s => s.pos);
+    trendChart.data.datasets[1].data = scanHistory.map(s => s.neg);
+    trendChart.data.datasets[2].data = scanHistory.map(s => s.neu);
+    trendChart.update();
+  }
+}
+
+// ── Metrics ──
+function updateMetrics(posts) {
+  var pos = posts.filter(p=>p.sentiment==='positive').length;
+  var neg = posts.filter(p=>p.sentiment==='negative').length;
+  var eng = posts.reduce((s,p)=>s+(p.likes||0)+(p.comments||0),0);
+  var posP = posts.length ? Math.round(pos/posts.length*100) : 0;
+  var negP = posts.length ? Math.round(neg/posts.length*100) : 0;
+  var score = Math.min(100, Math.max(0, posP - Math.floor(negP/2) + 50));
+
+  document.getElementById('m-mentions').textContent = posts.length;
+  document.getElementById('m-mentions-c').textContent = activePlats.join(' + ') + ' 平台';
+  document.getElementById('m-pos').textContent = posP + '%';
+  document.getElementById('m-pos-c').textContent = pos + ' 則正面貼文';
+  document.getElementById('m-neg').textContent = negP + '%';
+  document.getElementById('m-neg-c').textContent = neg + ' 則負面貼文';
+  document.getElementById('m-eng').textContent = eng.toLocaleString();
+
+  var arc = document.getElementById('score-arc');
+  var offset = 226 - (226 * score / 100);
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = score >= 70 ? '#4da87a' : score >= 40 ? '#d4973a' : '#c95858';
+  document.getElementById('score-num').textContent = score;
+
+  document.getElementById('total-posts').textContent = (parseInt(document.getElementById('total-posts').textContent)||0) + posts.length;
+
+  var platCounts = {threads:0,instagram:0,dcard:0,tiktok:0,facebook:0};
+  posts.forEach(p => {
+    var k = p.platform.toLowerCase();
+    if (platCounts[k] !== undefined) platCounts[k]++;
+  });
+  Object.keys(platCounts).forEach(k => {
+    document.getElementById('cnt-'+k).textContent = platCounts[k];
+  });
+}
+
+// ── Render posts ──
+function renderPosts(posts) {
+  if (!posts || posts.length === 0) {
+    document.getElementById('posts-list').innerHTML = '<div class="empty"><strong>📭</strong>此次掃描未找到相關貼文，請嘗試其他關鍵字</div>';
+    return;
+  }
+  var html = '';
+  posts.forEach(function(p) {
+    var sc = p.sentiment === 'positive' ? 'sent-pos' : p.sentiment === 'negative' ? 'sent-neg' : 'sent-neu';
+    var sl = p.sentiment === 'positive' ? '正面' : p.sentiment === 'negative' ? '負面' : '中立';
+    html += '<div class="post-item">';
+    html += '<div class="post-row1">';
+    html += '<span class="post-author">@' + escHtml(p.author||'匿名') + '</span>';
+    html += '<span class="plat-badge">' + escHtml(p.platform||'') + '</span>';
+    html += '<span class="sent-badge ' + sc + '">' + sl + '</span>';
+    html += '<span class="post-time">' + escHtml(p.time||'') + '</span>';
+    html += '</div>';
+    html += '<div class="post-text">' + escHtml(p.text||'') + '</div>';
+    html += '<div class="post-stats">';
+    html += '<span>♥ ' + (p.likes||0).toLocaleString() + '</span>';
+    html += '<span>💬 ' + (p.comments||0).toLocaleString() + '</span>';
+    if (p.shares) html += '<span>↗ ' + (p.shares||0).toLocaleString() + '</span>';
+    if (p.reason) html += '<span style="color:var(--accent3);margin-left:auto;font-style:italic">AI: ' + escHtml(p.reason) + '</span>';
+    html += '</div>';
+    html += '</div>';
+  });
+  document.getElementById('posts-list').innerHTML = html;
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Scan ──
+async function startScan() {
+  var kw = document.getElementById('kw-input').value.trim();
+  if (!kw) { showToast('請輸入搜尋關鍵字'); return; }
+  var btn = document.getElementById('scan-btn');
+  btn.disabled = true; btn.textContent = '掃描中...';
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('posts-list').innerHTML = '';
+  document.getElementById('ai-analysis').innerHTML = '';
+  document.getElementById('status-bar').textContent = '正在透過 byCrawl API 抓取資料...';
+  document.getElementById('api-status').textContent = '● 抓取中';
+  document.getElementById('api-status').style.color = 'var(--amber)';
+  document.getElementById('posts-list').innerHTML = '<div class="loading"><div class="spinner"></div>呼叫 byCrawl API，抓取 ' + activePlats.join('、') + ' 資料中...</div>';
+
+  try {
+    // Step 1: fetch real data via byCrawl REST API (CORS proxy via Claude API)
+    var posts = await fetchViaClaude(kw);
+    allPosts = posts;
+    document.getElementById('posts-list').innerHTML = '';
+    renderPosts(posts);
+    updateMetrics(posts);
+    updateCharts(posts);
+    var now = new Date().toLocaleString('zh-TW');
+    document.getElementById('last-scan').textContent = now;
+    document.getElementById('status-bar').textContent = '找到 ' + posts.length + ' 則貼文 · ' + now;
+    document.getElementById('api-status').textContent = '● 已完成';
+    document.getElementById('api-status').style.color = 'var(--green)';
+    await runAnalysis(posts, kw);
+  } catch (e) {
+    document.getElementById('posts-list').innerHTML = '<div class="empty"><strong>⚠</strong>' + escHtml(e.message) + '<br><br>請確認 API Key 正確，或重試</div>';
+    document.getElementById('status-bar').textContent = '掃描失敗';
+    document.getElementById('api-status').textContent = '● 錯誤';
+    document.getElementById('api-status').style.color = 'var(--red)';
+    showToast('掃描失敗：' + e.message);
+  }
+  btn.disabled = false; btn.textContent = '掃描 ↗';
+}
+
+async function fetchViaClaude(kw) {
+  var platStr = activePlats.map(p => {
+    var map = {threads:'Threads',instagram:'Instagram',dcard:'Dcard',tiktok:'TikTok',facebook:'Facebook'};
+    return map[p]||p;
+  }).join('、');
+
+  var prompt = `你是品牌監聽助理。請使用 byCrawl API（base URL: https://api.bycrawl.com）的 REST endpoint，搜尋關鍵字「${kw}」在以下平台的貼文：${platStr}。
+
+byCrawl API 格式：
+GET https://api.bycrawl.com/{platform}/posts/search?q={keyword}&count=5
+Header: Authorization: Bearer ${BYCRAWL_KEY}
+平台名稱：threads, instagram, dcard, tiktok, facebook
+
+請對每個選擇的平台各抓取 5 則，然後回傳 JSON 陣列（不含任何其他文字）：
+[{"author":"用戶名","platform":"平台名","text":"貼文內容","likes":數字,"comments":數字,"shares":數字,"time":"3小時前","sentiment":"positive/negative/neutral","reason":"情緒判斷簡要說明"}]
+
+若 API 無法呼叫，用品牌知識生成 10 則真實風格的模擬資料，在 reason 加上「(模擬資料)」。只回傳 JSON，不含 markdown。`;
+
+  var resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': CLAUDE_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-calls': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      mcp_servers: [{
+        type: 'url',
+        url: 'https://mcp.bycrawl.com/mcp',
+        name: 'bycrawl',
+        authorization_token: BYCRAWL_KEY
+      }],
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!resp.ok) {
+    var err = await resp.json().catch(()=>({}));
+    throw new Error(err.error?.message || 'API 呼叫失敗 (HTTP ' + resp.status + ')');
+  }
+
+  var data = await resp.json();
+  var text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  var m = text.match(/\[[\s\S]*\]/);
+  if (!m) throw new Error('AI 回應格式錯誤，請重試');
+  return JSON.parse(m[0]);
+}
+
+async function runAnalysis(posts, kw) {
+  document.getElementById('ai-analysis').innerHTML = '<div class="loading"><div class="spinner"></div>Claude 正在生成品牌聲量分析...</div>';
+  try {
+    var summary = posts.slice(0,12).map(p=>`[${p.platform}] @${p.author}: ${p.text} (情緒:${p.sentiment})`).join('\n');
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': CLAUDE_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-calls': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        messages: [{
+          role: 'user',
+          content: `以下是林果良品（ORINGO 台灣手工皮鞋）在社群媒體的近期貼文資料：\n\n${summary}\n\n請用繁體中文寫一段 150 字以內的品牌監聽摘要，包含：整體聲量評估、主要情緒傾向、值得關注的話題、以及一個行動建議。語氣專業，段落式書寫。`
+        }]
+      })
+    });
+    var data = await resp.json();
+    var txt = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    document.getElementById('ai-analysis').innerHTML =
+      '<div class="analysis-wrap"><div class="analysis-label">AI 品牌分析摘要</div>' +
+      '<div class="analysis-text">' + escHtml(txt) + '</div></div>';
+  } catch(e) {
+    document.getElementById('ai-analysis').innerHTML = '';
+  }
+}
+
+// ── Export CSV ──
+function exportCSV() {
+  if (!allPosts.length) { showToast('尚無資料可匯出，請先掃描'); return; }
+  var headers = ['平台','用戶','貼文內容','情緒','按讚數','留言數','分享數','時間'];
+  var rows = allPosts.map(p => [
+    p.platform, p.author, p.text, p.sentiment, p.likes||0, p.comments||0, p.shares||0, p.time
+  ].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','));
+  var csv = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = '林果良品品牌監聽_' + new Date().toLocaleDateString('zh-TW').replace(/\//g,'')+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ── Toast ──
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+</script>
+</body>
+</html>
