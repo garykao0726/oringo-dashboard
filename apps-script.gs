@@ -28,7 +28,8 @@ const CONFIG = {
     { name: '台中店', id: '1Jd6MIpv6FZCHtW0M59GJrvpTcYfsaLAVNwF9grOBviU' },
     { name: '東門店', id: '1au2yqNCUXNhzStjgMWevfySUFdZbYpnYarNVSrH7lwY' },
   ],
-  WEBHOOK: 'https://chat.googleapis.com/v1/spaces/AAAAncKRNMg/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=WHhv_P7mhATkzQ-foUHSYNbvNIyOcFUNA0zH9_piYAo',
+  WEBHOOK: 'https://chat.googleapis.com/v1/spaces/AAAAeOLlxg0/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=mHB_-6pbU6dIUNyoLsJEuAy7iIpVHKAC-CmGfovU_j0',
+  DASHBOARD_URL: 'https://garykao0726.github.io/oringo-dashboard/',
 
   SHOPLINE_TOKEN:  'e7d6778e15c50da41da4184207f6a84140c80b00ef4124887dc65a3868577977',
   SHOPLINE_HANDLE: 'oringoshoes',
@@ -452,7 +453,8 @@ function buildMessage(storesData, thisWeek, lastWeek, currentMonth, companyMPct,
   if (weekTotalTarget > 0) msg += '🎯 *本週（' + tws + '-' + twe + '）四店目標：NT$ ' + formatNumber(weekTotalTarget) + '*\n\n';
   if (bestStore) msg += '🥇 上週 *' + bestStore.name + '* 達成率最高，替大家拍拍手！\n\n';
   msg += '💬 ' + encouragement + '\n';
-  msg += '加油！林果全體夥伴 💪👟';
+  msg += '加油！林果全體夥伴 💪👟\n\n';
+  msg += '📊 *完整儀表板：* ' + CONFIG.DASHBOARD_URL;
 
   return msg;
 }
