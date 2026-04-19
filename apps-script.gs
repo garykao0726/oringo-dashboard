@@ -667,6 +667,31 @@ function diagShoplineRaw() {
   });
 }
 
+// 診斷 Shopline 客戶欄位（確認 orders_count 是否有回傳）
+function diagShoplineCustomers() {
+  var url = 'https://open.shopline.io/v1/orders'
+    + '?handle=' + CONFIG.SHOPLINE_HANDLE
+    + '&per_page=10&page=1';
+  var resp = UrlFetchApp.fetch(url, {
+    method: 'get',
+    headers: { 'Authorization': 'Bearer ' + CONFIG.SHOPLINE_TOKEN, 'Content-Type': 'application/json' },
+    muteHttpExceptions: true,
+  });
+  var orders = (JSON.parse(resp.getContentText()).items || []);
+  var shopOrders = orders.filter(function(o){ return o.created_from === 'shop'; });
+  shopOrders.forEach(function(o, i) {
+    var c = o.customer || {};
+    Logger.log('Order[' + i + '] id=' + o.id
+      + ' | customer.id='         + c.id
+      + ' | orders_count='        + c.orders_count
+      + ' | total_spent='         + c.total_spent
+      + ' | accepts_marketing='   + c.accepts_marketing
+      + ' | state='               + c.state
+      + ' | tags='                + c.tags);
+  });
+  Logger.log('共 ' + shopOrders.length + ' 筆網店訂單（前10頁）');
+}
+
 function testShopline() {
   var ranges = getWeekRanges();
   var data = getShoplineData(ranges.lastWeek, new Date().getMonth() + 1);
