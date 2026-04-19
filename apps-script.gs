@@ -193,25 +193,45 @@ function getStoreData(storeConfig, weekRange, currentMonth) {
 function getShoplineData(weekRange, currentMonth) {
   var monthTarget = ((CONFIG.ANNUAL_TARGETS['官網'] || [])[currentMonth - 1] || 0) * 10000;
   try {
-    var weekStart  = new Date(weekRange.start);
-    var weekEnd    = new Date(weekRange.end);
-    var today      = new Date();
-    var monthStart = new Date(today.getFullYear(), currentMonth - 1, 1);
+    var weekStartMs = new Date(weekRange.start).getTime();
+    var weekEndMs   = new Date(weekRange.end).getTime();
+    var today       = new Date();
+    var monthStart  = new Date(today.getFullYear(), currentMonth - 1, 1);
 
-    // Fetch week orders once, derive all metrics
-    var weekOrdersList = fetchShoplineOrders_(weekStart, weekEnd);
-    var weekRevenue = 0, weekNewTxn = 0, weekOldTxn = 0;
-    weekOrdersList.forEach(function(order) {
-      weekRevenue += (order.total && order.total.dollars != null) ? order.total.dollars : 0;
-      var ordersCount = (order.customer && order.customer.orders_count != null)
-        ? order.customer.orders_count : 0;
-      if (ordersCount <= 1) { weekNewTxn++; } else { weekOldTxn++; }
+    // 一次拉取整月訂單，同時算週業績與 MTD（減少 API 呼叫次數）
+    var allMtd = fetchShoplineOrders_(monthStart, today);
+
+    // 本週前（月初到週前一天）已下過單的 customer_id = 舊客
+    var priorCustIds = {};
+    allMtd.forEach(function(o) {
+      var t = new Date(o.created_at).getTime();
+      if (t < weekStartMs && o.customer_id) priorCustIds[o.customer_id] = true;
     });
-    var weekOrders    = weekOrdersList.length;
+
+    var weekRevenue = 0, weekNewTxn = 0, weekOldTxn = 0, mtdRevenue = 0;
+    var weekCustIds = {}; // 本週已出現的 customer_id
+    var weekOrders  = 0;
+
+    allMtd.forEach(function(o) {
+      var dollars = (o.total && o.total.dollars != null) ? o.total.dollars : 0;
+      mtdRevenue += dollars;
+      var t = new Date(o.created_at).getTime();
+      if (t >= weekStartMs && t <= weekEndMs) {
+        weekRevenue += dollars;
+        weekOrders++;
+        var cid = o.customer_id || '';
+        // 舊客：月初到上週已買過，或本週重複購買
+        if (cid && (priorCustIds[cid] || weekCustIds[cid])) {
+          weekOldTxn++;
+        } else {
+          weekNewTxn++;
+        }
+        if (cid) weekCustIds[cid] = true;
+      }
+    });
+
     var weekTotalTxn  = weekNewTxn + weekOldTxn;
     var weekAvgTicket = weekOrders > 0 ? Math.round(weekRevenue / weekOrders) : 0;
-
-    var mtdRevenue       = fetchShoplineRevenue(monthStart, today);
     var weekAchievement  = monthTarget > 0 ? weekRevenue / (monthTarget / 4.3) : 0;
     var monthAchievement = monthTarget > 0 ? mtdRevenue  / monthTarget          : 0;
 
