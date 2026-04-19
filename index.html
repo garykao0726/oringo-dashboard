@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>林果良品｜營運績效儀表板</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--green:#284234;--dark:#002721;--sand:#E2CEB9;--sand-light:#F5EDE3;--rust:#A54A1A;--gray-pink:#CFA294;--brown:#8D5531;--bg:#F5EDE3;--surface:#ffffff;--surface2:#FAF5EF;--border:rgba(40,66,52,0.10);--border2:rgba(40,66,52,0.22);--text:#284234;--text-sub:#8D5531;--text-muted:#b09a88;--positive:#1a7a4a;--negative:#c0392b}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh}
+.hdr{position:sticky;top:0;z-index:100;background:var(--green);height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-name{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.1em;color:var(--sand)}
+.brand-sep{width:1px;height:16px;background:rgba(226,206,185,.3)}
+.brand-sub{font-size:10px;color:var(--gray-pink);font-family:'Space Mono',monospace}
+.hdr-r{display:flex;align-items:center;gap:14px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#5be8a0;box-shadow:0 0 8px #5be8a0;animation:blink 2.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hclock{font-family:'Space Mono',monospace;font-size:12px;color:var(--gray-pink)}
+.data-tag{padding:3px 10px;border-radius:20px;border:1px solid rgba(226,206,185,.25);font-size:10px;font-family:'Space Mono',monospace;color:var(--gray-pink)}
+.tabs{background:var(--green);display:flex;padding:0 2rem;border-bottom:2px solid rgba(226,206,185,.12)}
+.tab{padding:10px 22px;font-size:12px;font-weight:500;color:rgba(226,206,185,.5);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;letter-spacing:.04em}
+.tab:hover{color:var(--sand)}.tab.active{color:var(--sand);border-bottom-color:var(--rust)}
+.container{max-width:1400px;margin:0 auto;padding:1.75rem 2rem}
+.g2{display:grid;grid-template-columns:3fr 2fr;gap:1.25rem;margin-bottom:1.25rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+.g-half{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:1.25rem}
+@media(max-width:1000px){.g2,.g3,.g-half,.g4{grid-template-columns:1fr}}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.sec-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.sec-title::before{content:'';display:block;width:3px;height:14px;background:var(--rust);border-radius:2px}
+.sec-date{font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.35rem}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
+.card-lbl{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+.card-lbl::before{content:'';display:block;width:3px;height:12px;background:var(--rust);border-radius:2px}
+.card-badge{font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.kpi5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem}
+.kpi4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+@media(max-width:1100px){.kpi5{grid-template-columns:repeat(3,1fr)}.kpi4{grid-template-columns:repeat(2,1fr)}}
+.kc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1.1rem;position:relative;overflow:hidden}
+.kc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kc-color,var(--green))}
+.kc-l{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.kc-v{font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:var(--text);line-height:1;margin-bottom:5px}
+.kc-d{display:flex;align-items:center;gap:6px}
+.delta{font-size:10px;font-family:'Space Mono',monospace;padding:2px 6px;border-radius:3px}
+.pos{background:rgba(26,122,74,.08);color:var(--positive)}.neg{background:rgba(192,57,43,.08);color:var(--negative)}.neu{background:var(--surface2);color:var(--text-muted)}
+.kc-vs{font-size:10px;color:var(--text-muted)}
+.wk5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem}
+@media(max-width:900px){.wk5{grid-template-columns:repeat(3,1fr)}}
+.wkc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center;position:relative;overflow:hidden}
+.wkc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--wkc-col,var(--green))}
+.wkc-name{font-size:10px;color:var(--text-muted);margin-bottom:3px}
+.wkc-pct{font-family:'Space Mono',monospace;font-size:22px;font-weight:700}
+.wkc-rev{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:2px}
+.wkc-bar{height:3px;background:var(--sand);border-radius:2px;margin-top:7px;overflow:hidden}
+.wkc-fill{height:100%;border-radius:2px}
+.prog{height:5px;background:var(--sand);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.prog-bar{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.store-rows{display:flex;flex-direction:column;gap:8px}
+.sr{padding:.85rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .18s}
+.sr:hover{border-color:var(--border2)}.sr.active{border-color:var(--green);background:#edf5ef}
+.sr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sr-name{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.sr-pct{font-family:'Space Mono',monospace;font-size:14px;font-weight:700}
+.sr-rev{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted)}
+.sr-stats{display:flex;gap:12px;flex-wrap:wrap}
+.sr-stat{font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace}
+.sr-stat b{color:var(--text-sub)}
+.drawer{display:none;background:#edf5ef;border:1px solid var(--green);border-radius:8px;padding:1.1rem;margin-top:4px}
+.drawer.open{display:block}
+.dd4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+@media(max-width:700px){.dd4{grid-template-columns:1fr 1fr}}
+.dd-kpi{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:8px 10px}
+.dd-l{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;text-transform:uppercase;margin-bottom:3px}
+.dd-v{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--rust)}
+.dd-d{font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);margin-top:2px}
+.ratio-bar{height:10px;border-radius:5px;overflow:hidden;display:flex;margin:7px 0}
+.rn{background:var(--green)}.ro{background:var(--sand)}
+.hm-wrap{overflow-x:auto}
+.hm{display:grid;grid-template-columns:52px repeat(10,1fr);gap:3px;min-width:480px}
+.hm-h{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;text-align:center;padding:2px 0}
+.hm-d{font-size:9px;color:var(--text-sub);font-family:'Space Mono',monospace;display:flex;align-items:center}
+.hm-c{border-radius:4px;height:26px;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:'Space Mono',monospace;font-weight:600;cursor:default;transition:transform .1s}
+.hm-c:hover{transform:scale(1.1)}
+.donut-wrap{position:relative;width:130px;height:130px;margin:0 auto}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.donut-pct{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;line-height:1}
+.donut-lbl{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;margin-top:2px}
+.ch200{position:relative;height:200px}.ch240{position:relative;height:240px}.ch260{position:relative;height:260px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace}
+.leg-dot{width:8px;height:8px;border-radius:50%}.leg-line{width:14px;height:2px;border-radius:1px}
+.m-pills{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:1.25rem}
+.mp{padding:4px 11px;font-size:11px;font-family:'Space Mono',monospace;border-radius:20px;border:1px solid var(--border);cursor:pointer;transition:all .18s;background:transparent;color:var(--text-muted)}
+.mp:hover{border-color:var(--border2);color:var(--text)}.mp.active{background:var(--green);color:var(--sand);border-color:var(--green)}
+.ctbl{width:100%;border-collapse:collapse;font-size:12px}
+.ctbl th{text-align:left;padding:7px 10px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--border);background:var(--surface2)}
+.ctbl td{padding:8px 10px;border-bottom:1px solid var(--border);font-family:'Space Mono',monospace}
+.ctbl tr:last-child td{border-bottom:none}.ctbl tr:hover td{background:var(--surface2)}
+.td-s{font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:600;color:var(--text)}
+.tp{color:var(--positive);font-weight:700}.tn{color:var(--negative);font-weight:700}
+.yr-toggle{display:flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden}
+.yr-btn{padding:5px 14px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;transition:all .18s;background:transparent;color:var(--text-muted);border:none}
+.yr-btn.active{background:var(--green);color:var(--sand)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.footer{background:var(--green);text-align:center;padding:1.25rem;font-size:11px;font-family:'Space Mono',monospace;color:var(--gray-pink);margin-top:2rem}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="brand">
+    <span class="brand-name">ORINGO</span>
+    <div class="brand-sep"></div>
+    <span class="brand-sub">OPERATIONS DASHBOARD</span>
+  </div>
+  <div class="hdr-r">
+    <div class="live-dot"></div>
+    <div class="hclock" id="clock">--:--:--</div>
+    <div class="data-tag" id="data-tag">LOADING...</div>
+  </div>
+</header>
+<nav class="tabs">
+  <button class="tab active" onclick="switchTab('weekly',this)">週報快覽</button>
+  <button class="tab" onclick="switchTab('monthly',this)">月度達成</button>
+  <button class="tab" onclick="switchTab('annual',this)">年度總覽</button>
+</nav>
+<div class="container">
+
+<!-- WEEKLY -->
+<div class="tab-panel active" id="panel-weekly">
+  <div class="sec-hdr">
+    <div class="sec-title">上週業績快覽</div>
+    <div class="sec-date" id="wk-date">2026 / 04 / 07 – 04 / 13</div>
+  </div>
+  <div class="wk5" id="wk-cards"></div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">各店週達成詳情</span><span class="card-badge">點擊展開完整 KPI</span></div>
+      <div class="store-rows" id="sr-weekly"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div class="card">
+        <div class="card-hdr"><span class="card-lbl">四店週達成</span></div>
+        <div class="donut-wrap"><canvas id="wk-donut"></canvas>
+          <div class="donut-center"><div class="donut-pct" id="wk-donut-pct" style="color:var(--green)">—</div><div class="donut-lbl">達成率</div></div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;font-family:'Space Mono',monospace" id="wk-summary"></div>
+      </div>
+      <div class="card"><div class="card-hdr"><span class="card-lbl">來客數達成</span></div><div id="visitor-ach"></div></div>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">新舊客比例</span><span class="card-badge">成交筆數</span></div>
+      <div class="ch200"><canvas id="new-old-chart"></canvas></div>
+      <div class="legend"><div class="leg-i"><div class="leg-dot" style="background:var(--green)"></div>新客</div><div class="leg-i"><div class="leg-dot" style="background:var(--sand)"></div>舊客回購</div></div>
+    </div>
+    <div class="card"><div class="card-hdr"><span class="card-lbl">維修來客分析</span></div><div id="repair-sec"></div></div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">四店週營收趨勢</span><span class="card-badge">近 8 週</span></div>
+      <div class="ch200"><canvas id="wk-trend"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-lbl">週一～週日 各時段來客熱力圖</span><span class="card-badge">12:00 – 21:00</span></div>
+    <div class="hm-wrap"><div class="hm" id="heatmap"></div></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace">
+      <span>少</span>
+      <div style="display:flex;gap:3px">
+        <div style="width:22px;height:10px;border-radius:2px;background:rgba(40,66,52,.05)"></div>
+        <div style="width:22px;height:10px;border-radius:2px;background:rgba(40,66,52,.18)"></div>
+        <div style="width:22px;height:10px;border-radius:2px;background:rgba(40,66,52,.38)"></div>
+        <div style="width:22px;height:10px;border-radius:2px;background:rgba(40,66,52,.60)"></div>
+        <div style="width:22px;height:10px;border-radius:2px;background:rgba(40,66,52,.85)"></div>
+      </div>
+      <span>多</span>
+    </div>
+  </div>
+</div>
+
+<!-- MONTHLY -->
+<div class="tab-panel" id="panel-monthly">
+  <div class="sec-hdr"><div class="sec-title">月度達成狀況</div></div>
+  <div class="m-pills" id="m-pills"></div>
+  <div class="kpi5" id="monthly-kpi"></div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-hdr">
+        <span class="card-lbl">全通路月營收趨勢</span>
+        <div class="legend">
+          <div class="leg-i"><div class="leg-dot" style="background:var(--green)"></div>2026</div>
+          <div class="leg-i"><div class="leg-dot" style="background:var(--sand)"></div>2025</div>
+          <div class="leg-i"><div class="leg-line" style="background:var(--rust)"></div>目標</div>
+        </div>
+      </div>
+      <div class="ch240"><canvas id="trend-chart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">全公司目標達成</span></div>
+      <div class="donut-wrap" style="width:140px;height:140px"><canvas id="company-donut"></canvas>
+        <div class="donut-center"><div class="donut-pct" id="company-pct" style="color:var(--rust)">—</div><div class="donut-lbl">達成率</div></div>
+      </div>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:7px" id="company-stats"></div>
+    </div>
+  </div>
+  <div class="sec-hdr" style="margin-top:1rem"><div class="sec-title">各店月達成狀況</div></div>
+  <div class="g-half">
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">各店達成列表</span><span class="card-badge">點擊展開詳情</span></div>
+      <div class="store-rows" id="sr-monthly"></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">通路營收佔比</span><span class="card-badge" id="ch-badge">2026 YTD</span></div>
+      <div class="donut-wrap" style="width:150px;height:150px"><canvas id="ch-donut"></canvas></div>
+      <div id="ch-legend" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div id="monthly-detail" style="display:none;margin-top:.75rem"><div class="drawer open" id="monthly-detail-inner"></div></div>
+</div>
+
+<!-- ANNUAL -->
+<div class="tab-panel" id="panel-annual">
+  <div class="sec-hdr">
+    <div class="sec-title">年度總覽</div>
+    <div class="yr-toggle">
+      <button class="yr-btn active" onclick="selectAnnualYear(2026,this)">2026</button>
+      <button class="yr-btn" onclick="selectAnnualYear(2025,this)">2025</button>
+    </div>
+  </div>
+  <div class="kpi4" id="annual-kpi"></div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-hdr"><span class="card-lbl">各店 YoY 月增率</span><div class="legend" id="yoy-legend"></div></div>
+    <div class="ch260"><canvas id="yoy-chart"></canvas></div>
+  </div>
+  <div class="sec-hdr"><div class="sec-title">各店年度逐月比較</div></div>
+  <div class="g-half" id="sd-grid" style="margin-bottom:1.25rem"></div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-lbl">2025 vs 2026 逐月對照</span><span class="card-badge">萬元 NTD</span></div>
+    <div style="overflow-x:auto"><table class="ctbl" id="yoy-tbl"></table></div>
+  </div>
+</div>
+
+</div>
+<footer class="footer">
+  林果良品 ORINGO｜營運績效儀表板｜每週一自動更新
+  <span style="opacity:.4;font-size:10px;display:block;margin-top:3px">INTERNAL USE ONLY · ©2026 ORINGO</span>
+</footer>
+<script>
+const STORES=['中山店','松菸店','台中店','東門店','官網'];
+const STORES4=['中山店','松菸店','台中店','東門店'];
+const S_EMO=['🏙️','🌿','🏔️','🚪','🌐'];
+const S_COL=['#284234','#5a8a6e','#A54A1A','#8D5531','#CFA294'];
+const TARGETS={'中山店':[180,170,170,150,140,125,125,125,140,170,170,180],'松菸店':[160,150,150,140,120,110,110,110,120,140,150,160],'台中店':[130,120,120,120,110,95,95,95,110,120,120,130],'東門店':[140,130,130,120,110,100,100,100,120,130,130,140],'官網':[125,115,115,100,100,90,90,90,100,115,115,125]};
+const TARGETS25={'中山店':[148,141,131,103,131,98,121,112,117,138,161,160],'松菸店':[136,119,138,119,108,89,87,91,122,139,174,160],'台中店':[110,98,75,59,64,78,60,88,76,100,113,126],'東門店':[117,105,96,75,84,90,66,89,81,111,130,172],'官網':[128,79,97,70,70,60,74,77,67,100,101,105]};
+const ANNUAL_TARGET_2025=7200;
+const ANNUAL_TARGET_2025_TOTAL=8200;
+const SHEET_ID='17hTgCpF0mBTHf3RcnDmRFrJMeLBn3nRdTMuG8l58QjY';
+const D25={'中山店':[148,141,131,103,131,98,121,112,117,138,161,160],'松菸店':[136,119,138,119,108,89,87,91,122,139,174,160],'台中店':[110,98,75,59,64,78,60,88,76,100,113,126],'東門店':[117,105,96,75,84,90,66,89,81,111,130,172],'官網':[128,79,97,70,70,60,74,77,67,100,101,105]};
+let D26={'中山店':[185,0,0,0,0,0,0,0,0,0,0,0],'松菸店':[163,0,0,0,0,0,0,0,0,0,0,0],'台中店':[133,0,0,0,0,0,0,0,0,0,0,0],'東門店':[145,0,0,0,0,0,0,0,0,0,0,0],'官網':[130,0,0,0,0,0,0,0,0,0,0,0]};
+let WK={};STORES.forEach(s=>WK[s]={rev:0,tgt:0,vis:0,conv:0,ticket:0,newTxn:0,oldTxn:0,repVis:0,repConv:0,weekOrders:0,mtdRev:0,monthTarget:0,monthAch:0});
+function loadGviz(sheetName){return new Promise((resolve,reject)=>{const cb='_gviz_'+sheetName.replace(/\W/g,'')+'_'+Date.now();window[cb]=function(resp){delete window[cb];const rows=(resp.table.rows||[]).map(r=>(r.c||[]).map(cell=>cell?cell.v:null));resolve(rows);};const s=document.createElement('script');s.onerror=()=>reject(new Error('Load failed: '+sheetName));s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}&sheet=${encodeURIComponent(sheetName)}`;document.head.appendChild(s);});}
+async function loadData(){try{const [wkRows,moRows]=await Promise.all([loadGviz('週報數據'),loadGviz('月度數據')]);wkRows.slice(1).forEach(r=>{const s=r[2];if(!s||!WK[s])return;WK[s].rev=r[3]||0;WK[s].tgt=r[4]||0;WK[s].vis=r[6]||0;WK[s].repVis=r[9]||0;WK[s].newTxn=r[10]||0;WK[s].oldTxn=r[11]||0;WK[s].ticket=r[13]||0;WK[s].conv=r[14]||0;WK[s].mtdRev=r[15]||0;WK[s].monthTarget=r[16]||0;WK[s].monthAch=r[17]||0;WK[s].weekOrders=r[18]||0;});moRows.slice(1).forEach(r=>{const yr=Number(r[0]),mo=Number(r[1]),s=r[2],rev=r[3];if(yr===2026&&mo>=1&&mo<=12&&D26[s])D26[s][mo-1]=Math.round((rev||0)/10000);});const wkLabel=wkRows[1]?wkRows[1][1]||'':'';if(wkLabel)document.getElementById('wk-date').textContent=wkLabel;const updTime=wkRows[1]?wkRows[1][0]||'':'';document.getElementById('data-tag').textContent=updTime?'更新 '+updTime:'LIVE DATA';}catch(e){console.error('Dashboard data load error',e);document.getElementById('data-tag').textContent='載入失敗';}renderWeekly();}
+const HEATMAP={'週一':[18,22,31,28,42,55,60,48,35,20],'週二':[15,20,28,35,48,58,65,50,38,22],'週三':[20,25,33,30,45,52,58,45,32,18],'週四':[22,28,36,40,55,65,70,60,42,25],'週五':[28,35,45,55,72,88,95,80,58,35],'週六':[42,58,72,85,95,105,110,98,75,48],'週日':[38,55,68,78,88,98,100,90,68,42]};
+const WK8=[1388,1412,1395,1440,1455,1460,1478,1459];
+const WK8L=['W9','W10','W11','W12','W13','W14','W15','W16'];
+let selMonth=0,selStoreW=null,selStoreM=null,annualYr=2026;
+const CH={};
+const fw=n=>Math.round(n).toLocaleString('zh-TW');
+const yd=(a,b)=>b>0?((a-b)/b*100).toFixed(1):'—';
+const ac=p=>p>=100?'var(--positive)':p>=80?'#b8860b':'var(--negative)';
+function ytdStats(){
+  const curMo=new Date().getMonth()+1;
+  let rev=0,tgt=0,rev25=0;
+  STORES.forEach(s=>{
+    for(let m=1;m<curMo;m++){rev+=((D26[s]||[])[m-1]||0)*10000;tgt+=getTgt(s,m)*10000;rev25+=((D25[s]||[])[m-1]||0)*10000;}
+    rev+=WK[s].mtdRev||0;tgt+=getTgt(s,curMo)*10000;rev25+=((D25[s]||[])[curMo-1]||0)*10000;
+  });
+  const ach=tgt>0?rev/tgt:0;
+  return{rev,tgt,rev25,ach,curMo};
+}
+function storeYtdAch(s){
+  const curMo=new Date().getMonth()+1;
+  let rev=0,tgt=0;
+  for(let m=1;m<curMo;m++){rev+=((D26[s]||[])[m-1]||0)*10000;tgt+=getTgt(s,m)*10000;}
+  rev+=WK[s].mtdRev||0;tgt+=getTgt(s,curMo)*10000;
+  return tgt>0?rev/tgt:0;
+}
+const getD=(s,yr,m)=>{const d=yr===2026?D26:D25;return m===0?(d[s]||[]).reduce((a,b)=>a+b,0):(d[s]||[])[m-1]||0;};
+const getTgt=(s,m)=>m===0?(TARGETS[s]||[]).reduce((a,b)=>a+b,0):(TARGETS[s]||[])[m-1]||0;
+function cOpts(ex={}){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'rgba(40,66,52,.15)',borderWidth:1,titleColor:'#284234',bodyColor:'#8D5531',titleFont:{family:'Space Mono',size:11},bodyFont:{family:'Space Mono',size:11},padding:10,cornerRadius:8}},scales:{x:{grid:{color:'rgba(40,66,52,.05)'},ticks:{color:'#b09a88',font:{family:'Space Mono',size:10}}},y:{grid:{color:'rgba(40,66,52,.05)'},ticks:{color:'#b09a88',font:{family:'Space Mono',size:10}}}},...ex};}
+function renderWeekly(){renderWkCards();renderSrWeekly();renderWkDonut();renderVisitorAch();renderNewOld();renderRepair();renderWkTrend();renderHeatmap();}
+function renderWkCards(){document.getElementById('wk-cards').innerHTML=STORES.map((s,i)=>{const w=WK[s],p=w.tgt>0?Math.round(w.rev/w.tgt*100):0,c=ac(p);const mp=w.monthTarget>0?Math.round(w.mtdRev/w.monthTarget*100):0,mc=ac(mp);return`<div class="wkc" style="--wkc-col:${S_COL[i]}"><div class="wkc-name">${S_EMO[i]} ${s}</div><div class="wkc-pct" style="color:${c}">${p}%</div><div class="wkc-rev">NT$${fw(w.rev)} / ${fw(w.tgt)}</div><div class="wkc-bar"><div class="wkc-fill" style="width:${Math.min(p,100)}%;background:${S_COL[i]}"></div></div>${mp>0?`<div style="margin-top:7px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:6px"><span style="font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted)">本月達成</span><span style="font-size:12px;font-family:'Space Mono',monospace;font-weight:700;color:${mc}">${mp}%</span></div>`:''}${mp>0?`<div style="font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);text-align:right">NT$${fw(w.mtdRev)}</div>`:''}</div>`;}).join('');}
+function renderSrWeekly(){const el=document.getElementById('sr-weekly');el.innerHTML='';STORES.forEach((s,i)=>{const w=WK[s],p=w.tgt>0?w.rev/w.tgt*100:0,c=ac(p);const wrap=document.createElement('div');const row=document.createElement('div');row.className='sr'+(selStoreW===s?' active':'');row.innerHTML=`<div class="sr-top"><div class="sr-name">${S_EMO[i]} ${s}</div><div><div class="sr-pct" style="color:${c}">${p.toFixed(1)}%</div><div class="sr-rev">NT$${fw(w.rev)} / 目標${fw(w.tgt)}</div></div></div><div class="prog"><div class="prog-bar" style="width:${Math.min(p,100)}%;background:${S_COL[i]}"></div></div><div class="sr-stats">${w.vis?`<div class="sr-stat">來客 <b>${w.vis}人</b></div>`:''} ${w.conv?`<div class="sr-stat">成交率 <b>${(w.conv*100).toFixed(0)}%</b></div>`:''} ${w.ticket?`<div class="sr-stat">客單 <b>$${fw(w.ticket)}</b></div>`:''} ${w.repVis?`<div class="sr-stat">維修 <b>${w.repVis}人</b></div>`:''} ${(()=>{const mp=w.monthTarget>0?Math.round(w.mtdRev/w.monthTarget*100):0;return mp>0?`<div class="sr-stat">本月 <b style="color:${ac(mp)}">${mp}%</b></div>`:'';})()} ${(()=>{const ytd=storeYtdAch(s);return ytd>0?`<div class="sr-stat">YTD <b style="color:${ac(ytd*100)}">${(ytd*100).toFixed(0)}%</b></div>`:'';})()}</div>`;row.onclick=()=>{selStoreW=selStoreW===s?null:s;renderSrWeekly();};const drw=document.createElement('div');drw.className='drawer'+(selStoreW===s?' open':'');if(s!=='官網'){const tot=w.newTxn+w.oldTxn;const nr=tot>0?Math.round(w.newTxn/tot*100):0,or=100-nr;const rr=Math.round(w.repConv/(w.repVis||1)*100);const occ=w.vis>0?Math.round(w.repVis/w.vis*100):0;drw.innerHTML=`<div class="dd4"><div class="dd-kpi"><div class="dd-l">新客成交</div><div class="dd-v">${w.newTxn}筆</div><div class="dd-d">${nr}% 佔比</div></div><div class="dd-kpi"><div class="dd-l">舊客回購</div><div class="dd-v">${w.oldTxn}筆</div><div class="dd-d">${or}% 佔比</div></div><div class="dd-kpi"><div class="dd-l">維修來客</div><div class="dd-v">${w.repVis}人</div><div class="dd-d">佔來客 ${occ}%</div></div><div class="dd-kpi"><div class="dd-l">維修轉換率</div><div class="dd-v" style="color:var(--rust)">${rr}%</div><div class="dd-d">${w.repConv}/${w.repVis}</div></div></div><div style="font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace;margin-bottom:5px">新舊客比例</div><div class="ratio-bar"><div class="rn" style="width:${nr}%"></div><div class="ro" style="width:${or}%"></div></div><div style="display:flex;gap:14px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted)"><span><span style="color:var(--green)">■</span> 新客 ${nr}%</span><span><span style="color:var(--sand)">■</span> 舊客 ${or}%</span></div>`;}else{const _tot=w.newTxn+w.oldTxn,_nr=_tot>0?Math.round(w.newTxn/_tot*100):0;drw.innerHTML=`<div class="dd4"><div class="dd-kpi"><div class="dd-l">週訂單數</div><div class="dd-v">${w.weekOrders}筆</div></div><div class="dd-kpi"><div class="dd-l">平均客單價</div><div class="dd-v">$${fw(w.ticket)}</div></div><div class="dd-kpi"><div class="dd-l">新客成交</div><div class="dd-v">${w.newTxn}筆</div><div class="dd-d">${_nr}% 佔比</div></div><div class="dd-kpi"><div class="dd-l">舊客回購</div><div class="dd-v">${w.oldTxn}筆</div><div class="dd-d">${100-_nr}% 佔比</div></div></div>${_tot>0?`<div style="font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace;margin:8px 0 4px">新舊客比例</div><div class="ratio-bar"><div class="rn" style="width:${_nr}%"></div><div class="ro" style="width:${100-_nr}%"></div></div><div style="display:flex;gap:14px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted)"><span><span style="color:var(--green)">■</span> 新客 ${_nr}%</span><span><span style="color:var(--sand)">■</span> 舊客 ${100-_nr}%</span></div>`:''}<div style="display:flex;gap:8px;margin-top:10px"><div class="dd-kpi" style="flex:1"><div class="dd-l">月累計</div><div class="dd-v">NT$${fw(w.mtdRev)}</div></div><div class="dd-kpi" style="flex:1"><div class="dd-l">月達成</div><div class="dd-v" style="color:var(--rust)">${w.monthAch?(w.monthAch<=1?(w.monthAch*100).toFixed(1):w.monthAch.toFixed(1))+'%':'—'}</div></div><div class="dd-kpi" style="flex:1"><div class="dd-l">月目標</div><div class="dd-v" style="color:var(--text-muted)">NT$${fw(w.monthTarget)}</div></div></div>`;}wrap.appendChild(row);wrap.appendChild(drw);el.appendChild(wrap);});}
+function renderWkDonut(){const tot=STORES4.reduce((s,n)=>s+WK[n].rev,0);const tgt=STORES4.reduce((s,n)=>s+WK[n].tgt,0);const p=Math.round(tot/tgt*100);document.getElementById('wk-donut-pct').textContent=p+'%';document.getElementById('wk-summary').innerHTML=`<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:5px;margin-bottom:5px"><span style="color:var(--text-muted)">四店合計</span><span style="font-weight:700">NT$${fw(tot)}</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">週目標</span><span style="color:var(--text-muted)">NT$${fw(tgt)}</span></div>`;if(CH.wkd)CH.wkd.destroy();CH.wkd=new Chart(document.getElementById('wk-donut'),{type:'doughnut',data:{datasets:[{data:[p,Math.max(0,100-p)],backgroundColor:['#284234','#E2CEB9'],borderWidth:0}]},options:{cutout:'75%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}}}});}
+function renderVisitorAch(){document.getElementById('visitor-ach').innerHTML=STORES4.map(s=>{const w=WK[s],vt=w.visTgt||0,p=vt>0?Math.round(w.vis/vt*100):0,c=vt>0?ac(p):'var(--text-muted)';return`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--text-sub)">${s}</span><span style="font-family:'Space Mono',monospace;color:${c};font-weight:700">${w.vis}${vt>0?`<span style="color:var(--text-muted);font-weight:400"> / ${vt}人</span>`:'<span style="color:var(--text-muted);font-weight:400"> 人</span>'}</span></div><div class="prog"><div class="prog-bar" style="width:${Math.min(p,100)}%;background:${c}"></div></div></div>`;}).join('');}
+function renderNewOld(){if(CH.no)CH.no.destroy();CH.no=new Chart(document.getElementById('new-old-chart'),{type:'bar',data:{labels:STORES4,datasets:[{label:'新客',data:STORES4.map(s=>WK[s].newTxn),backgroundColor:'#284234',borderRadius:4,stack:'a'},{label:'舊客',data:STORES4.map(s=>WK[s].oldTxn),backgroundColor:'#E2CEB9',borderRadius:4,stack:'a'}]},options:{...cOpts(),scales:{x:{grid:{display:false},stacked:true,ticks:{color:'#b09a88',font:{family:'Space Mono',size:10}}},y:{stacked:true,grid:{color:'rgba(40,66,52,.05)'},ticks:{color:'#b09a88',font:{family:'Space Mono',size:10}}}}}});}
+function renderRepair(){document.getElementById('repair-sec').innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${STORES4.map(s=>{const w=WK[s],rr=Math.round(w.repConv/(w.repVis||1)*100),occ=w.vis>0?Math.round(w.repVis/w.vis*100):0;return`<div style="padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px;font-weight:600">${s}</span><span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--rust)">${rr}%</span></div><div style="display:flex;gap:10px;font-size:10px;font-family:'Space Mono',monospace;color:var(--text-muted)"><span>來客 <b style="color:var(--text-sub)">${w.repVis}</b></span><span>成交 <b style="color:var(--text-sub)">${w.repConv}</b></span><span>佔比 <b style="color:var(--text-sub)">${occ}%</b></span></div><div class="prog" style="margin-top:5px"><div class="prog-bar" style="width:${rr}%;background:var(--rust)"></div></div></div>`;}).join('')}</div>`;}
+function renderWkTrend(){if(CH.wkt)CH.wkt.destroy();CH.wkt=new Chart(document.getElementById('wk-trend'),{type:'line',data:{labels:WK8L,datasets:[{data:WK8,borderColor:'#284234',backgroundColor:'rgba(40,66,52,.07)',borderWidth:2,fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#284234'}]},options:cOpts()});}
+function renderHeatmap(){const days=Object.keys(HEATMAP);const hours=['12','13','14','15','16','17','18','19','20','21'];const all=days.flatMap(d=>HEATMAP[d]);const maxV=Math.max(...all);const el=document.getElementById('heatmap');el.innerHTML='';el.appendChild(Object.assign(document.createElement('div'),{className:'hm-h'}));hours.forEach(h=>{el.appendChild(Object.assign(document.createElement('div'),{className:'hm-h',textContent:h+':00'}));});days.forEach(day=>{el.appendChild(Object.assign(document.createElement('div'),{className:'hm-d',textContent:day}));HEATMAP[day].forEach(v=>{const ratio=v/maxV,alpha=0.05+ratio*.80;const c=document.createElement('div');c.className='hm-c';c.style.background=`rgba(40,66,52,${alpha.toFixed(2)})`;c.style.color=ratio>.5?'#F5EDE3':'#284234';c.textContent=v;el.appendChild(c);});});}
+function renderMonthly(){if(!document.getElementById('m-pills').children.length){const pills=document.getElementById('m-pills');const all=document.createElement('button');all.className='mp active';all.textContent='全年 YTD';all.onclick=()=>selectMonth(0,all);pills.appendChild(all);for(let m=1;m<=12;m++){const b=document.createElement('button');b.className='mp';b.textContent=m+'月';b.onclick=function(){selectMonth(m,this)};pills.appendChild(b);}}renderMonthlyKPI();renderTrendChart();renderCompanyDonut();renderSrMonthly();renderChDonut();}
+function renderMonthlyKPI(){const m=selMonth;let t26=0,t25=0,tgt=0;if(m===0){const y=ytdStats();t26=Math.round(y.rev/10000);t25=Math.round(y.rev25/10000);tgt=Math.round(y.tgt/10000);}else{STORES.forEach(s=>{t26+=getD(s,2026,m);t25+=getD(s,2025,m);tgt+=getTgt(s,m);});}const ach=(t26/tgt*100).toFixed(1),yoy=parseFloat(yd(t26,t25));const wTot=STORES4.reduce((s,n)=>s+WK[n].rev,0),wTgt=STORES4.reduce((s,n)=>s+WK[n].tgt,0);const wAch=(wTot/wTgt*100).toFixed(1);const avgT=Math.round(STORES4.reduce((s,n)=>s+WK[n].ticket,0)/4);const kpis=[{l:'全通路累計',v:'NT$'+t26+'萬',d:yoy,vs:'vs 2025 YoY',c:'var(--green)'},{l:'目標達成率',v:ach+'%',d:parseFloat(ach)-75,vs:'vs 75% 階段目標',c:'var(--rust)'},{l:'上週四店達成',v:wAch+'%',d:parseFloat(wAch)-100,vs:'vs 週目標',c:'#5a8a6e'},{l:'四店平均客單',v:'$'+fw(avgT),d:((avgT-6800)/6800*100).toFixed(1),vs:'vs 基準 $6,800',c:'var(--brown)'},{l:'年度目標',v:'NT$'+tgt+'萬',d:null,vs:'全年總目標',c:'var(--gray-pink)'}];document.getElementById('monthly-kpi').innerHTML=kpis.map(k=>{const dv=parseFloat(k.d),cls=dv>0?'pos':dv<0?'neg':'neu',arr=dv>0?'▲ +':'▼ ';return`<div class="kc" style="--kc-color:${k.c}"><div class="kc-l">${k.l}</div><div class="kc-v">${k.v}</div><div class="kc-d">${k.d!==null?`<span class="delta ${cls}">${arr}${Math.abs(dv).toFixed(1)}%</span>`:''}<span class="kc-vs">${k.vs}</span></div></div>`;}).join('');}
+function renderTrendChart(){const lbs=['1','2','3','4','5','6','7','8','9','10','11','12'];const t26=lbs.map((_,i)=>STORES.reduce((s,st)=>s+(D26[st]||[])[i],0));const t25=lbs.map((_,i)=>STORES.reduce((s,st)=>s+(D25[st]||[])[i],0));const tg=lbs.map((_,i)=>STORES.reduce((s,st)=>s+(TARGETS[st]||[])[i],0));if(CH.tr)CH.tr.destroy();CH.tr=new Chart(document.getElementById('trend-chart'),{data:{labels:lbs.map(m=>m+'月'),datasets:[{type:'bar',label:'2026',data:t26,backgroundColor:'rgba(40,66,52,.2)',borderColor:'#284234',borderWidth:1.5,borderRadius:4},{type:'bar',label:'2025',data:t25,backgroundColor:'rgba(226,206,185,.5)',borderColor:'#E2CEB9',borderWidth:1,borderRadius:4},{type:'line',label:'目標',data:tg,borderColor:'#A54A1A',borderWidth:2,pointRadius:0,fill:false,tension:.3,borderDash:[5,4]}]},options:cOpts()});}
+function renderCompanyDonut(){const m=selMonth;let t26=0,tgt=0,t25=0;STORES.forEach(s=>{t26+=getD(s,2026,m);tgt+=getTgt(s,m);t25+=getD(s,2025,m);});const p=Math.round(t26/tgt*100),yoy=parseFloat(yd(t26,t25));document.getElementById('company-pct').textContent=p+'%';document.getElementById('company-stats').innerHTML=`<div style="display:flex;justify-content:space-between;font-size:11px;font-family:'Space Mono',monospace;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px"><span style="color:var(--text-muted)">累計營收</span><span style="font-weight:700">NT$${fw(t26)}萬</span></div><div style="display:flex;justify-content:space-between;font-size:11px;font-family:'Space Mono',monospace;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px"><span style="color:var(--text-muted)">年度目標</span><span style="color:var(--text-muted)">NT$${fw(tgt)}萬</span></div><div style="display:flex;justify-content:space-between;font-size:11px;font-family:'Space Mono',monospace"><span style="color:var(--text-muted)">vs 2025 同期</span><span style="font-weight:700;color:${yoy>=0?'var(--positive)':'var(--negative)'}">${yoy>=0?'▲ +':'▼ '}${Math.abs(yoy)}%</span></div>`;if(CH.cd)CH.cd.destroy();CH.cd=new Chart(document.getElementById('company-donut'),{type:'doughnut',data:{datasets:[{data:[p,Math.max(0,100-p)],backgroundColor:['#A54A1A','#E2CEB9'],borderWidth:0}]},options:{cutout:'72%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}}}});}
+function renderSrMonthly(){const el=document.getElementById('sr-monthly');el.innerHTML='';STORES.forEach((s,i)=>{const m=selMonth,rev=getD(s,2026,m),tgt=getTgt(s,m),rev25=getD(s,2025,m);const p=tgt>0?(rev/tgt*100):0,yoy=parseFloat(yd(rev,rev25)),c=ac(p);const wrap=document.createElement('div'),row=document.createElement('div');row.className='sr'+(selStoreM===s?' active':'');row.innerHTML=`<div class="sr-top"><div class="sr-name">${S_EMO[i]} ${s}</div><div><div class="sr-pct" style="color:${c}">${p.toFixed(1)}%</div><div class="sr-rev">NT$${fw(rev)}萬 / ${fw(tgt)}萬</div></div></div><div class="prog"><div class="prog-bar" style="width:${Math.min(p,100)}%;background:${S_COL[i]}"></div></div><div class="sr-stats"><div class="sr-stat">YoY <b style="color:${yoy>=0?'var(--positive)':'var(--negative)'}">${yoy>=0?'+':''}${yoy}%</b></div></div>`;row.onclick=()=>{selStoreM=selStoreM===s?null:s;renderSrMonthly();toggleMonthlyDetail();};wrap.appendChild(row);el.appendChild(wrap);});toggleMonthlyDetail();}
+function toggleMonthlyDetail(){const panel=document.getElementById('monthly-detail');if(!selStoreM){panel.style.display='none';return;}panel.style.display='block';const s=selStoreM,i=STORES.indexOf(s),color=S_COL[i];const m=selMonth,rev=getD(s,2026,m),tgt=getTgt(s,m),rev25=getD(s,2025,m);const ach=(tgt>0?(rev/tgt*100):0).toFixed(1),yoy=parseFloat(yd(rev,rev25));const inner=document.getElementById('monthly-detail-inner');inner.innerHTML=`<div style="font-size:13px;font-weight:700;color:${color};margin-bottom:10px">${S_EMO[i]} ${s} 詳細分析</div><div class="dd4"><div class="dd-kpi"><div class="dd-l">累計營收</div><div class="dd-v" style="color:${color}">NT$${fw(rev)}萬</div></div><div class="dd-kpi"><div class="dd-l">達成率</div><div class="dd-v" style="color:${color}">${ach}%</div></div><div class="dd-kpi"><div class="dd-l">YoY</div><div class="dd-v" style="color:${yoy>=0?'var(--positive)':'var(--negative)'}">${yoy>=0?'+':''}${yoy}%</div></div><div class="dd-kpi"><div class="dd-l">年度目標</div><div class="dd-v" style="color:var(--text-muted)">NT$${fw(tgt)}萬</div></div></div><div style="position:relative;height:150px"><canvas id="sd-chart"></canvas></div>`;setTimeout(()=>{if(CH.sd)CH.sd.destroy();CH.sd=new Chart(document.getElementById('sd-chart'),{data:{labels:['1','2','3','4','5','6','7','8','9','10','11','12'].map(m=>m+'月'),datasets:[{type:'bar',label:'2026',data:D26[s],backgroundColor:color+'30',borderColor:color,borderWidth:1.5,borderRadius:3},{type:'bar',label:'2025',data:D25[s],backgroundColor:'rgba(226,206,185,.5)',borderColor:'#CFA294',borderWidth:1,borderRadius:3},{type:'line',label:'目標',data:TARGETS[s],borderColor:'#A54A1A55',borderWidth:1.5,pointRadius:0,fill:false,borderDash:[4,4]}]},options:cOpts()});},50);}
+function renderChDonut(){const m=selMonth,vals=STORES.map(s=>getD(s,2026,m));const total=vals.reduce((a,b)=>a+b,0);if(CH.chd)CH.chd.destroy();CH.chd=new Chart(document.getElementById('ch-donut'),{type:'doughnut',data:{labels:STORES,datasets:[{data:vals,backgroundColor:S_COL.map(c=>c+'cc'),borderWidth:3,borderColor:'#fff',hoverBorderWidth:0}]},options:{cutout:'58%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'rgba(40,66,52,.15)',borderWidth:1,titleColor:'#284234',bodyColor:'#8D5531',callbacks:{label:ctx=>` ${ctx.label}: ${fw(ctx.parsed)}萬 (${(ctx.parsed/total*100).toFixed(1)}%)`}}}}});document.getElementById('ch-legend').innerHTML=STORES.map((s,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:${S_COL[i]}"></div><span style="font-size:11px;color:var(--text-sub)">${s}</span></div><span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted)">${(vals[i]/total*100).toFixed(1)}%</span></div>`).join('');}
+function selectMonth(m,btn){selMonth=m;document.querySelectorAll('.mp').forEach(el=>el.classList.remove('active'));btn.classList.add('active');document.getElementById('ch-badge').textContent=m===0?'2026 YTD':'2026 '+m+'月';renderMonthlyKPI();renderCompanyDonut();renderSrMonthly();renderChDonut();}
+function renderAnnual(){renderAnnualKPI();renderYoyChart();renderSdGrid();renderYoyTable();}
+function renderAnnualKPI(){const d=annualYr===2026?D26:D25,opp=annualYr===2026?D25:D26;let tot=0,topp=0,tgt=0;STORES.forEach(s=>{tot+=(d[s]||[]).reduce((a,b)=>a+b,0);topp+=(opp[s]||[]).reduce((a,b)=>a+b,0);tgt+=getTgt(s,0);});const ach=(tot/tgt*100).toFixed(1),yoy=parseFloat(yd(tot,topp));const bs=STORES.reduce((best,s)=>{const p=getTgt(s,0)>0?(d[s]||[]).reduce((a,b)=>a+b,0)/getTgt(s,0):0;const bp=getTgt(best,0)>0?(d[best]||[]).reduce((a,b)=>a+b,0)/getTgt(best,0):0;return p>bp?s:best;},STORES[0]);document.getElementById('annual-kpi').innerHTML=[{l:'全通路年度累計',v:'NT$'+fw(tot)+'萬',d:yoy,vs:'vs '+(annualYr===2026?2025:2024),c:'var(--green)'},{l:'年度達成率',v:ach+'%',d:parseFloat(ach)-100,vs:'vs 年度目標',c:'var(--rust)'},{l:'年度目標',v:'NT$'+fw(tgt)+'萬',d:null,vs:'全年目標',c:'var(--brown)'},{l:'達成最高門市',v:bs,d:null,vs:'本年度',c:'#5a8a6e'}].map(k=>{const dv=parseFloat(k.d),cls=dv>0?'pos':dv<0?'neg':'neu';return`<div class="kc" style="--kc-color:${k.c}"><div class="kc-l">${k.l}</div><div class="kc-v">${k.v}</div><div class="kc-d">${k.d!==null?`<span class="delta ${cls}">${dv>0?'▲ +':'▼ '}${Math.abs(dv).toFixed(1)}%</span>`:''}<span class="kc-vs">${k.vs}</span></div></div>`;}).join('');}
+function renderYoyChart(){const lbs=['1','2','3','4','5','6','7','8','9','10','11','12'];const ds=STORES4.map((s,i)=>({label:s,data:lbs.map((_,mi)=>{const a=D26[s][mi],b=D25[s][mi];return b>0?parseFloat(((a-b)/b*100).toFixed(1)):null;}),borderColor:S_COL[i],backgroundColor:S_COL[i]+'18',borderWidth:2,pointRadius:4,pointBackgroundColor:S_COL[i],fill:false,tension:.3}));if(CH.yoy)CH.yoy.destroy();CH.yoy=new Chart(document.getElementById('yoy-chart'),{type:'line',data:{labels:lbs.map(m=>m+'月'),datasets:ds},options:{...cOpts(),scales:{x:{grid:{color:'rgba(40,66,52,.05)'},ticks:{color:'#b09a88',font:{family:'Space Mono',size:10}}},y:{grid:{color:'rgba(40,66,52,.05)'},ticks:{color:'#b09a88',font:{family:'Space Mono',size:10},callback:v=>v+'%'}}}}});document.getElementById('yoy-legend').innerHTML=STORES4.map((s,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${S_COL[i]}"></div>${s}</div>`).join('');}
+function renderSdGrid(){const d=annualYr===2026?D26:D25,opp=annualYr===2026?D25:D26;document.getElementById('sd-grid').innerHTML=STORES.map((s,i)=>`<div class="card"><div class="card-hdr"><span class="card-lbl" style="color:${S_COL[i]}">${S_EMO[i]} ${s}</span><span class="card-badge" style="color:${S_COL[i]};border-color:${S_COL[i]}33">${(getTgt(s,0)>0?((d[s]||[]).reduce((a,b)=>a+b,0)/getTgt(s,0)*100).toFixed(1):0)}%</span></div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:10px">NT$${fw((d[s]||[]).reduce((a,b)=>a+b,0))}萬 / 目標 ${fw(getTgt(s,0))}萬</div><div style="position:relative;height:130px"><canvas id="sc${i}"></canvas></div></div>`).join('');setTimeout(()=>{STORES.forEach((s,i)=>{const c=document.getElementById('sc'+i);if(!c)return;if(CH['sc'+i])CH['sc'+i].destroy();const d2=annualYr===2026?D26:D25,d3=annualYr===2026?D25:D26;CH['sc'+i]=new Chart(c,{data:{labels:['1','2','3','4','5','6','7','8','9','10','11','12'].map(m=>m+'月'),datasets:[{type:'bar',label:String(annualYr),data:d2[s],backgroundColor:S_COL[i]+'30',borderColor:S_COL[i],borderWidth:1.5,borderRadius:3},{type:'bar',label:String(annualYr===2026?2025:2024),data:d3[s],backgroundColor:'rgba(226,206,185,.4)',borderColor:'#CFA294',borderWidth:1,borderRadius:3},{type:'line',label:'目標',data:TARGETS[s],borderColor:'#A54A1A55',borderWidth:1.5,pointRadius:0,fill:false,borderDash:[4,4]}]},options:{...cOpts(),scales:{x:{grid:{display:false},ticks:{color:'#b09a88',font:{family:'Space Mono',size:9}}},y:{grid:{color:'rgba(40,66,52,.04)'},ticks:{color:'#b09a88',font:{family:'Space Mono',size:9}}}}}});});},100);}
+function renderYoyTable(){const lbs=['1','2','3','4','5','6','7','8','9','10','11','12'];document.getElementById('yoy-tbl').innerHTML=`<thead><tr><th>月份</th>${STORES4.map((s,i)=>`<th style="color:${S_COL[i]}">${s} 2025</th><th style="color:${S_COL[i]}">2026</th><th>YoY</th>`).join('')}</tr></thead><tbody>`+lbs.map((_,mi)=>`<tr><td style="color:var(--text-muted)">${mi+1}月</td>${STORES4.map(s=>{const a=D26[s][mi],b=D25[s][mi];const yoy=b>0?parseFloat(((a-b)/b*100).toFixed(1)):null;return`<td style="color:var(--text-muted)">${b||'—'}</td><td style="font-weight:700">${a||'—'}</td><td class="${yoy!==null?(yoy>=0?'tp':'tn'):''}">${yoy!==null?(yoy>=0?'▲ +':'▼ ')+Math.abs(yoy)+'%':'—'}</td>`;}).join('')}</tr>`).join('')+'</tbody>';}
+function selectAnnualYear(y,btn){annualYr=y;document.querySelectorAll('.yr-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAnnual();}
+function switchTab(tab,btn){document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));document.getElementById('panel-'+tab).classList.add('active');if(tab==='monthly')renderMonthly();if(tab==='annual')renderAnnual();}
+(function tick(){const n=new Date();document.getElementById('clock').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>('0'+v).slice(-2)).join(':');setTimeout(tick,1000);})();
+loadData();
+</script>
+</body>
+</html>
