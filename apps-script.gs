@@ -268,13 +268,18 @@ function getShoplineData(weekRange, currentMonth) {
 // created_from==='shop' 是線上訂單；admin_openapi 是實體門市 POS，排除
 // 嚴格雙邊日期過濾：startMs <= t <= endMs，不依賴 API 排序
 function fetchShoplineOrders_(startDate, endDate) {
-  var startMs = startDate.getTime();
-  var endMs   = endDate.getTime();
-  var matched = [], page = 1;
+  var startMs  = startDate.getTime();
+  var endMs    = endDate.getTime();
+  // ISO8601 for Shopline date filter params
+  var minStr   = startDate.toISOString();
+  var maxStr   = endDate.toISOString();
+  var matched  = [], page = 1;
   while (page <= 50) {
     var url = 'https://open.shopline.io/v1/orders'
-      + '?handle='    + CONFIG.SHOPLINE_HANDLE
-      + '&per_page=100&page=' + page;
+      + '?handle='           + CONFIG.SHOPLINE_HANDLE
+      + '&per_page=100&page=' + page
+      + '&created_at_min='   + encodeURIComponent(minStr)
+      + '&created_at_max='   + encodeURIComponent(maxStr);
     var resp = UrlFetchApp.fetch(url, {
       method: 'get',
       headers: { 'Authorization': 'Bearer ' + CONFIG.SHOPLINE_TOKEN, 'Content-Type': 'application/json' },
@@ -284,11 +289,15 @@ function fetchShoplineOrders_(startDate, endDate) {
     var data   = JSON.parse(resp.getContentText());
     var orders = data.items || [];
     if (orders.length === 0) break;
+    var allBeforeStart = true;
     for (var i = 0; i < orders.length; i++) {
-      if (orders[i].created_from !== 'shop') continue;
       var t = new Date(orders[i].created_at).getTime();
+      if (t >= startMs) allBeforeStart = false;
+      if (orders[i].created_from !== 'shop') continue;
       if (t >= startMs && t <= endMs && orders[i].status !== 'cancelled') matched.push(orders[i]);
     }
+    // 若整頁訂單都早於查詢起始日，代表已超出範圍，提早結束
+    if (allBeforeStart) { Logger.log('Shopline early-exit at p' + page); break; }
     var perPage = (data.pagination || {}).per_page || 100;
     if (orders.length < perPage) break;
     page++;
