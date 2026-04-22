@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "static-server (worktree index.html)",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8000"],
+      "port": 8000
+    },
+    {
+      "name": "static-server (v2 dashboard)",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8001", "--directory", "/Users/imakao/Library/CloudStorage/GoogleDrive-gary@oringoshoes.com/我的雲端硬碟/Claude/營運儀表板"],
+      "port": 8001
+    }
+  ]
+}
