@@ -34,6 +34,14 @@ const CONFIG = {
   SHOPLINE_TOKEN:  'e7d6778e15c50da41da4184207f6a84140c80b00ef4124887dc65a3868577977',
   SHOPLINE_HANDLE: 'oringoshoes',
 
+  GA4_PROPERTY_ID: '259936795',
+
+  EC_TARGETS: {
+    SESSIONS: 850000,
+    CONV_RATE: 0.0035,
+    AVG_TICKET: 5000,
+  },
+
   DASHBOARD_SHEET_ID:    '17hTgCpF0mBTHf3RcnDmRFrJMeLBn3nRdTMuG8l58QjY',
   DASHBOARD_TAB_WEEK:    '週報數據',
   DASHBOARD_TAB_MONTHLY: '月度數據',
@@ -235,9 +243,18 @@ function getShoplineData(weekRange, currentMonth) {
     var weekAvgTicket = weekOrders > 0 ? Math.round(weekRevenue / weekOrders) : 0;
     var weekAchievement  = monthTarget > 0 ? weekRevenue / (monthTarget / 4.3) : 0;
     var monthAchievement = monthTarget > 0 ? mtdRevenue  / monthTarget          : 0;
+    var monthOrders     = allMtd.length;
+    var monthAvgTicket  = monthOrders > 0 ? Math.round(mtdRevenue / monthOrders) : 0;
+
+    // GA4 流量資料（若服務未啟用會回傳 0）
+    var gaWeek  = fetchGA4_(weekRange.start, weekRange.end);
+    var gaMonth = fetchGA4_(monthStart, today);
+    var weekGaConv  = gaWeek.sessions  > 0 ? weekOrders  / gaWeek.sessions  : 0;
+    var monthGaConv = gaMonth.sessions > 0 ? monthOrders / gaMonth.sessions : 0;
 
     Logger.log('Shopline 上週營收：' + weekRevenue + '，月累計：' + mtdRevenue +
-      '，週訂單：' + weekOrders + '，新客：' + weekNewTxn + '，舊客：' + weekOldTxn);
+      '，週訂單：' + weekOrders + '，新客：' + weekNewTxn + '，舊客：' + weekOldTxn +
+      '，GA 週 Sessions：' + gaWeek.sessions + '，月 Sessions：' + gaMonth.sessions);
 
     return {
       name:              '官網',
@@ -258,10 +275,46 @@ function getShoplineData(weekRange, currentMonth) {
       monthAchievement:  monthAchievement,
       mtdRevenue:        Math.round(mtdRevenue),
       monthTarget:       monthTarget,
+      monthOrders:       monthOrders,
+      monthAvgTicket:    monthAvgTicket,
+      weekSessions:      gaWeek.sessions,
+      weekUsers:         gaWeek.users,
+      weekGaConv:        weekGaConv,
+      monthSessions:     gaMonth.sessions,
+      monthUsers:        gaMonth.users,
+      monthGaConv:       monthGaConv,
     };
   } catch(e) {
     Logger.log('Shopline ERROR: ' + e.toString());
     return { name: '官網', error: e.toString(), monthTarget: monthTarget };
+  }
+}
+
+// ==========================================
+// GA4 Data API（需在 Apps Script「服務」啟用 AnalyticsData）
+// 使用前：Apps Script 編輯器 → 服務(+) → 新增「Google Analytics Data API」
+// 執行帳號需對 GA4 Property 259936795 擁有至少檢視權限
+// ==========================================
+function fetchGA4_(startDate, endDate) {
+  try {
+    var request = {
+      dateRanges: [{
+        startDate: Utilities.formatDate(startDate, 'Asia/Taipei', 'yyyy-MM-dd'),
+        endDate:   Utilities.formatDate(endDate,   'Asia/Taipei', 'yyyy-MM-dd'),
+      }],
+      metrics: [
+        { name: 'sessions' },
+        { name: 'totalUsers' },
+      ],
+    };
+    var report = AnalyticsData.Properties.runReport(request, 'properties/' + CONFIG.GA4_PROPERTY_ID);
+    var mv = (report.rows && report.rows[0]) ? report.rows[0].metricValues : [];
+    var sessions = Number((mv[0] || {}).value || 0);
+    var users    = Number((mv[1] || {}).value || 0);
+    return { sessions: sessions, users: users };
+  } catch (e) {
+    Logger.log('GA4 ERROR: ' + e.toString());
+    return { sessions: 0, users: 0, error: e.toString() };
   }
 }
 
@@ -341,7 +394,9 @@ function pushWeeklyTab(ss, storesData, lastWeek) {
   tab.appendRow(['更新時間','週期','門市','週營收(元)','週目標(元)','週達成率',
     '總來客','新客來客','舊客來客','維修來客',
     '新客成交','回購成交','總成交','客單價','成交率',
-    '月累計(元)','月目標(元)','月達成率','週訂單數(電商)']);
+    '月累計(元)','月目標(元)','月達成率','週訂單數(電商)','維修成交','新會員數',
+    '週Sessions','週Users','週GA轉換率','月Sessions','月Users','月GA轉換率',
+    '月訂單數','月客單價']);
   storesData.forEach(function(s) {
     if (s.error) { tab.appendRow([now, weekLabel, s.name, 'ERROR: ' + s.error]); return; }
     var weekTgt = s.monthTarget > 0 ? Math.round(s.monthTarget / 4.3) : 0;
@@ -352,6 +407,9 @@ function pushWeeklyTab(ss, storesData, lastWeek) {
       s.weekAvgTicket|| 0, s.weekConvRate    || 0,
       Math.round(s.mtdRevenue || 0), Math.round(s.monthTarget || 0), s.monthAchievement || 0,
       s.weekOrders   || 0, s.weekRepairConv  || 0, s.weekNewMembers  || 0,
+      s.weekSessions || 0, s.weekUsers       || 0, s.weekGaConv     || 0,
+      s.monthSessions|| 0, s.monthUsers      || 0, s.monthGaConv    || 0,
+      s.monthOrders  || 0, s.monthAvgTicket  || 0,
     ]);
   });
   Logger.log('週報數據分頁已更新');
