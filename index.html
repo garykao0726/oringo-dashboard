@@ -114,7 +114,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
 .donut-pct{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;line-height:1}
 .donut-lbl{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;margin-top:2px}
-.ch200{position:relative;height:200px}.ch240{position:relative;height:240px}.ch260{position:relative;height:260px}
+.ch180{position:relative;height:180px}.ch200{position:relative;height:200px}.ch240{position:relative;height:240px}.ch260{position:relative;height:260px}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
 .leg-i{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace}
 .leg-dot{width:8px;height:8px;border-radius:50%}.leg-line{width:14px;height:2px;border-radius:1px}
@@ -331,6 +331,16 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
       <div class="gbp-bar-wrap" id="gbp-rank-bars"></div>
     </div>
   </div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-hdr"><span class="card-lbl">地圖導航請求 vs 實際來客</span><span class="card-badge">週趨勢對應</span></div>
+    <div id="gbp-corr-note" style="font-size:.78rem;color:var(--txt2);margin-bottom:.75rem;padding:0 .25rem">來客資料累積中，圖表將隨每週更新自動填入。</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem" id="gbp-corr-charts">
+      <div><div style="font-size:.8rem;font-weight:600;color:var(--txt1);margin-bottom:4px">台北松菸店</div><div class="ch180"><canvas id="gbp-corr-0"></canvas></div></div>
+      <div><div style="font-size:.8rem;font-weight:600;color:var(--txt1);margin-bottom:4px">台北東門店</div><div class="ch180"><canvas id="gbp-corr-1"></canvas></div></div>
+      <div><div style="font-size:.8rem;font-weight:600;color:var(--txt1);margin-bottom:4px">台北中山店</div><div class="ch180"><canvas id="gbp-corr-2"></canvas></div></div>
+      <div><div style="font-size:.8rem;font-weight:600;color:var(--txt1);margin-bottom:4px">台中園道店</div><div class="ch180"><canvas id="gbp-corr-3"></canvas></div></div>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -450,12 +460,29 @@ const MOCK_GBP=[
   {store:'台中園道店',search:3280,map:1560,nav:195,phone:61,web:142,rating:4.8,reviews:196,weeklyReviews:2,photos:118,weeklyPhotos:1,updateRate:62,wTrend:[2600,2680,2780,2900,3000,3100,3200,3280],mTrend:[1200,1250,1320,1380,1430,1490,1530,1560]}
 ];
 let gbpLoaded=false,gbpTrendChart=null;
+const GBP_WK_NAME={'中山店':'台北中山店','松菸店':'台北松菸店','台中店':'台中園道店','東門店':'台北東門店'};
+function getISOWeek(d){const date=new Date(d);date.setHours(0,0,0,0);date.setDate(date.getDate()+3-(date.getDay()+6)%7);const w1=new Date(date.getFullYear(),0,4);return 1+Math.round(((date-w1)/86400000-3+(w1.getDay()+6)%7)/7);}
 async function loadGbpData(){
   if(gbpLoaded)return;gbpLoaded=true;
   try{
-    const rows=await loadGviz('GBP數據');
+    const [rows,wkRows]=await Promise.all([loadGviz('GBP數據'),loadGviz('週報數據')]);
     if(!rows||rows.length<1){renderGbpWithMock(true);return;}
-    // Group rows by store name (col 2)
+    // Build visitor map from 週報數據: { 'W16': { '台北中山店': 98 } }
+    const visMap={};
+    (wkRows||[]).forEach(r=>{
+      const period=String(r[1]||'').trim();
+      const shortName=String(r[2]||'').trim();
+      const vis=Number(r[6])||0;
+      const gbpName=GBP_WK_NAME[shortName];
+      if(!period||!gbpName)return;
+      const startStr=period.split('~')[0].trim(); // "2026/4/13"
+      const parts=startStr.split('/');
+      if(parts.length<3)return;
+      const wkLabel='W'+getISOWeek(new Date(parts[0],parts[1]-1,parts[2]));
+      if(!visMap[wkLabel])visMap[wkLabel]={};
+      visMap[wkLabel][gbpName]=(visMap[wkLabel][gbpName]||0)+vis;
+    });
+    // Group GBP rows by store
     const storeMap={};
     rows.forEach(r=>{
       const name=String(r[2]||'').trim();
@@ -471,29 +498,67 @@ async function loadGbpData(){
     });
     const hasData=GBP_STORES.some(n=>storeMap[n]&&storeMap[n].length>0);
     if(!hasData){renderGbpWithMock(true);return;}
-    // Week labels from first store's history (last 8)
     const ref=storeMap[GBP_STORES[0]]||[];
     const last8ref=ref.slice(-8);
     const weekLabels=last8ref.map(e=>e.week);
     while(weekLabels.length<8)weekLabels.unshift('—');
-    // Build per-store data
     const data=GBP_STORES.map(name=>{
       const entries=storeMap[name]||[];
       const latest=entries[entries.length-1]||{};
       const last8=entries.slice(-8);
-      while(last8.length<8)last8.unshift({search:0,map:0});
-      return{store:name,...latest,wTrend:last8.map(e=>e.search||0),mTrend:last8.map(e=>e.map||0)};
+      while(last8.length<8)last8.unshift({search:0,map:0,nav:0});
+      return{store:name,...latest,
+        wTrend:last8.map(e=>e.search||0),
+        mTrend:last8.map(e=>e.map||0),
+        nav8:last8.map(e=>e.nav||0),
+        vis8:last8ref.map(e=>(visMap[e.week]&&visMap[e.week][name])||0),
+      };
     });
     const latestWeek=rows[rows.length-1]?String(rows[rows.length-1][1]||''):'';
     document.getElementById('gbp-period').textContent=(latestWeek||'')+' 真實數據';
-    renderGbpCards(data);renderGbpTrend(data,weekLabels);renderGbpRank(data);renderGbpReviews(data);renderGbpActions(data);
+    renderGbpCards(data);renderGbpTrend(data,weekLabels);renderGbpRank(data);renderGbpReviews(data);renderGbpActions(data);renderGbpCorr(data,weekLabels);
   }catch(e){console.error('loadGbpData',e);renderGbpWithMock(true);}
 }
 function gbpStars(r){const f=Math.floor(r),h=r-f>=0.5?1:0;return'<span style="color:#d4a72c">'+'★'.repeat(f)+(h?'★':'')+'</span>'+'<span style="color:var(--border2)">'+'☆'.repeat(5-f-h)+'</span>';}
 function renderGbpWithMock(showBanner){
   if(showBanner)document.getElementById('gbp-mock-banner').style.display='flex';
   document.getElementById('gbp-period').textContent='W09 – W16（模擬資料）';
-  renderGbpCards(MOCK_GBP);renderGbpTrend(MOCK_GBP);renderGbpRank(MOCK_GBP);renderGbpReviews(MOCK_GBP);renderGbpActions(MOCK_GBP);
+  const mockWkLabels=['W9','W10','W11','W12','W13','W14','W15','W16'];
+  const mockWithCorr=MOCK_GBP.map(d=>({...d,nav8:d.wTrend.map(v=>Math.round(v*0.04)),vis8:[0,0,0,0,0,0,0,d.weekVisitors||Math.round(d.nav*2.1)]}));
+  renderGbpCards(mockWithCorr);renderGbpTrend(mockWithCorr);renderGbpRank(mockWithCorr);renderGbpReviews(mockWithCorr);renderGbpActions(mockWithCorr);renderGbpCorr(mockWithCorr,mockWkLabels);
+}
+const _gbpCorrCharts=[];
+function renderGbpCorr(data,weekLabels){
+  _gbpCorrCharts.forEach(c=>c.destroy());_gbpCorrCharts.length=0;
+  const hasVis=data.some(d=>(d.vis8||[]).some(v=>v>0));
+  const note=document.getElementById('gbp-corr-note');
+  if(note)note.style.display=hasVis?'none':'block';
+  data.forEach((d,i)=>{
+    const ctx=document.getElementById('gbp-corr-'+i);
+    if(!ctx)return;
+    const vis8=d.vis8||new Array(8).fill(0);
+    const nav8=d.nav8||new Array(8).fill(0);
+    const chart=new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:weekLabels,
+        datasets:[
+          {label:'實際來客',data:vis8,backgroundColor:'rgba(40,66,52,0.75)',yAxisID:'y',order:2},
+          {label:'地圖導航',data:nav8,type:'line',borderColor:'#A54A1A',backgroundColor:'transparent',borderWidth:2,pointRadius:3,pointBackgroundColor:'#A54A1A',yAxisID:'y1',order:1},
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:i===0,position:'top',labels:{boxWidth:10,font:{size:10}}}},
+        scales:{
+          y:{position:'left',ticks:{font:{size:9}},grid:{color:'rgba(0,0,0,.05)'},title:{display:true,text:'來客',font:{size:9}}},
+          y1:{position:'right',ticks:{font:{size:9}},grid:{drawOnChartArea:false},title:{display:true,text:'導航',font:{size:9}}},
+          x:{ticks:{font:{size:9}}},
+        }
+      }
+    });
+    _gbpCorrCharts.push(chart);
+  });
 }
 function renderGbpActions(data){
   const el=document.getElementById('gbp-actions');
