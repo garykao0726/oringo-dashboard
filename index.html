@@ -317,7 +317,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     <div id="gbp-review-overview"></div>
   </div>
   <div class="card" style="margin-bottom:1.25rem">
-    <div class="card-hdr"><span class="card-lbl">本週店員行動指標</span><span class="card-badge">每週可改善</span></div>
+    <div class="card-hdr"><span class="card-lbl">本月店員行動指標</span><span class="card-badge">近 4 週累計</span></div>
     <div id="gbp-actions"></div>
   </div>
   <div class="g2" style="margin-bottom:1.25rem">
@@ -509,12 +509,17 @@ async function loadGbpData(){
       const entries=storeMap[name]||[];
       const latest=entries[entries.length-1]||{};
       const last8=entries.slice(-8);
+      const last4=entries.slice(-4);
       while(last8.length<8)last8.unshift({search:0,map:0,nav:0});
+      const monthlyReviews=last4.reduce((s,e)=>s+(e.weeklyReviews||0),0);
+      const monthlyPhotos=last4.reduce((s,e)=>s+(e.weeklyPhotos||0),0);
+      const monthlyPost=last4.some(e=>(e.updateRate||0)>0);
       return{store:name,...latest,
         wTrend:last8.map(e=>e.search||0),
         mTrend:last8.map(e=>e.map||0),
         nav8:last8.map(e=>e.nav||0),
         vis8:last8ref.map(e=>(visMap[e.week]&&visMap[e.week][name])||0),
+        monthlyReviews,monthlyPhotos,monthlyPost,
       };
     });
     const latestWeek=rows[rows.length-1]?String(rows[rows.length-1][1]||''):'';
@@ -527,7 +532,7 @@ function renderGbpWithMock(showBanner){
   if(showBanner)document.getElementById('gbp-mock-banner').style.display='flex';
   document.getElementById('gbp-period').textContent='W09 – W16（模擬資料）';
   const mockWkLabels=['W9','W10','W11','W12','W13','W14','W15','W16'];
-  const mockWithCorr=MOCK_GBP.map(d=>({...d,nav8:d.wTrend.map(v=>Math.round(v*0.04)),vis8:[0,0,0,0,0,0,0,d.weekVisitors||Math.round(d.nav*2.1)]}));
+  const mockWithCorr=MOCK_GBP.map(d=>({...d,nav8:d.wTrend.map(v=>Math.round(v*0.04)),vis8:[0,0,0,0,0,0,0,d.weekVisitors||Math.round(d.nav*2.1)],monthlyReviews:d.weeklyReviews*4,monthlyPhotos:d.weeklyPhotos*4,monthlyPost:d.updateRate>0}));
   renderGbpCards(mockWithCorr);renderGbpTrend(mockWithCorr);renderGbpRank(mockWithCorr);renderGbpReviews(mockWithCorr);renderGbpActions(mockWithCorr);renderGbpCorr(mockWithCorr,mockWkLabels);
 }
 const _gbpCorrCharts=[];
@@ -576,9 +581,9 @@ function renderGbpActions(data){
   const el=document.getElementById('gbp-actions');
   if(!el)return;
   const actions=[
-    {key:'reviews',label:'回覆或累積評價',hint:'本週新增 ≥3 則為綠燈',icon:'⭐',get:d=>d.weeklyReviews||0,green:v=>v>=3,yellow:v=>v>=1},
-    {key:'photos',label:'上傳門市照片',hint:'本週新增 ≥2 張為綠燈',icon:'📷',get:d=>d.weeklyPhotos||0,green:v=>v>=2,yellow:v=>v>=1},
-    {key:'post',label:'更新 Google 貼文',hint:'本週已發布貼文為綠燈',icon:'📝',get:d=>d.updateRate||0,green:v=>v>=100,yellow:v=>v>0},
+    {key:'reviews',label:'新增 / 回覆評價',hint:'月累計 ≥8 則綠燈，≥4 黃燈',icon:'⭐',get:d=>d.monthlyReviews??d.weeklyReviews??0,green:v=>v>=8,yellow:v=>v>=4},
+    {key:'photos',label:'上傳門市照片',hint:'月累計 ≥4 張綠燈，≥2 黃燈',icon:'📷',get:d=>d.monthlyPhotos??d.weeklyPhotos??0,green:v=>v>=4,yellow:v=>v>=2},
+    {key:'post',label:'更新 Google 貼文',hint:'本月至少 1 篇為綠燈',icon:'📝',get:d=>d.monthlyPost??((d.updateRate||0)>0),green:v=>v===true||v>=1,yellow:v=>false},
   ];
   const rows=data.map(d=>{
     const cells=actions.map(a=>{
@@ -586,7 +591,7 @@ function renderGbpActions(data){
       const color=a.green(v)?'#2d7a45':a.yellow(v)?'#b87a00':'#b03020';
       const bg=a.green(v)?'#e6f4eb':a.yellow(v)?'#fdf6e0':'#fcecea';
       const lamp=a.green(v)?'🟢':a.yellow(v)?'🟡':'🔴';
-      const display=a.key==='post'?(v>=100?'已發布':v>0?`${v}%`:'未發布'):`${v}`;
+      const display=a.key==='post'?(v===true||v>=1?'已發布':'未發布'):String(v);
       return`<td style="text-align:center;padding:6px 10px"><span style="background:${bg};color:${color};border-radius:6px;padding:3px 10px;font-size:.82rem;font-weight:600">${lamp} ${display}</span></td>`;
     }).join('');
     return`<tr><td style="padding:6px 12px;font-size:.85rem;color:var(--txt1);font-weight:600">${d.store}</td>${cells}</tr>`;
