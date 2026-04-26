@@ -132,6 +132,30 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .yr-btn.active{background:var(--green);color:var(--sand)}
 .tab-panel{display:none}.tab-panel.active{display:block}
 .footer{background:var(--green);text-align:center;padding:1.25rem;font-size:11px;font-family:'Space Mono',monospace;color:var(--gray-pink);margin-top:2rem}
+/* GBP */
+.gbp-mock-banner{background:#fffbe6;border:1px solid #d4a72c;border-radius:8px;padding:10px 16px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-family:'Space Mono',monospace;color:#b8860b;gap:12px}
+.g-gbp{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:1.25rem}
+@media(max-width:1100px){.g-gbp{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.g-gbp{grid-template-columns:1fr}}
+.store-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;position:relative;overflow:hidden}
+.store-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--sc-color,var(--green))}
+.sc-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.sc-kpi{padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px}
+.sc-kpi-main{grid-column:1/-1;border-left:3px solid var(--sc-color,var(--green))}
+.sc-kpi-l{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.sc-kpi-v{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--text);line-height:1}
+.sc-kpi-main .sc-kpi-v{font-size:24px;color:var(--rust)}
+.sc-ratio-label{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;display:flex;justify-content:space-between;margin-bottom:4px}
+.sc-ratio-bar{height:8px;border-radius:4px;overflow:hidden;display:flex}
+.ratio-map{background:var(--sand)}
+.gbp-bar-wrap{display:flex;flex-direction:column;gap:10px}
+.gbp-bar-row{display:flex;align-items:center;gap:12px}
+.gbp-bar-name{font-size:12px;font-weight:600;width:90px;flex-shrink:0;color:var(--text-sub)}
+.gbp-bar-track{flex:1;height:26px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.gbp-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:10px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.gbp-bar-val{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#fff}
+.gbp-bar-detail{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);white-space:nowrap;min-width:130px}
 </style>
 </head>
 <body>
@@ -151,6 +175,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   <button class="tab active" onclick="switchTab('weekly',this)">週報快覽</button>
   <button class="tab" onclick="switchTab('monthly',this)">月度達成</button>
   <button class="tab" onclick="switchTab('annual',this)">年度總覽</button>
+  <button class="tab" onclick="switchTab('gbp',this)">📍 GBP 門市流量</button>
 </nav>
 <div class="container">
 
@@ -275,6 +300,31 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   </div>
 </div>
 
+
+<!-- GBP -->
+<div class="tab-panel" id="panel-gbp">
+  <div id="gbp-mock-banner" class="gbp-mock-banner" style="display:none">
+    ⚠️ 試算表「GBP數據」工作表尚未建立，目前顯示模擬資料
+    <span style="opacity:.5;font-size:10px">請在 Google Sheets 建立「GBP數據」工作表</span>
+  </div>
+  <div class="sec-hdr">
+    <div class="sec-title">Google 商家 門市流量</div>
+    <div class="sec-date" id="gbp-period">—</div>
+  </div>
+  <div class="g-gbp" id="gbp-cards"></div>
+  <div class="g2" style="margin-bottom:1.25rem">
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">各店 8 週曝光趨勢</span><span class="card-badge">搜尋 + 地圖合計</span></div>
+      <div class="ch240"><canvas id="gbp-trend-chart"></canvas></div>
+      <div class="legend" id="gbp-trend-legend" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">互動指標排行</span><span class="card-badge">本期</span></div>
+      <div class="gbp-bar-wrap" id="gbp-rank-bars"></div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- 延伸分析入口 -->
@@ -283,17 +333,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     <div class="sec-title">延伸分析</div>
     <div class="sec-date">獨立分析頁面</div>
   </div>
-  <div class="g-half">
-    <a href="gbp.html" style="text-decoration:none;display:block">
-      <div class="card" style="cursor:pointer;transition:all .2s;border:1.5px solid var(--border);display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem" onmouseover="this.style.borderColor='var(--green)';this.style.background='#edf5ef'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
-        <div style="width:48px;height:48px;border-radius:10px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📍</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">GBP 門市流量</div>
-          <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace;line-height:1.5">各實體門市 Google 商家曝光、導航請求、電話 / 網站點擊趨勢分析</div>
-        </div>
-        <div style="font-size:16px;color:var(--text-muted)">→</div>
-      </div>
-    </a>
+  <div style="max-width:560px">
     <a href="seo.html" style="text-decoration:none;display:block">
       <div class="card" style="cursor:pointer;transition:all .2s;border:1.5px solid var(--border);display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem" onmouseover="this.style.borderColor='var(--green)';this.style.background='#edf5ef'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
         <div style="width:48px;height:48px;border-radius:10px;background:var(--rust);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🔍</div>
@@ -306,6 +346,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     </a>
   </div>
 </div>
+
 
 <footer class="footer">
   林果良品 ORINGO｜營運績效儀表板｜每週一自動更新
@@ -389,7 +430,67 @@ function renderYoyChart(){const lbs=['1','2','3','4','5','6','7','8','9','10','1
 function renderSdGrid(){const d=annualYr===2026?D26:D25,opp=annualYr===2026?D25:D26;document.getElementById('sd-grid').innerHTML=STORES.map((s,i)=>`<div class="card"><div class="card-hdr"><span class="card-lbl" style="color:${S_COL[i]}">${S_EMO[i]} ${s}</span><span class="card-badge" style="color:${S_COL[i]};border-color:${S_COL[i]}33">${(getTgt(s,0)>0?((d[s]||[]).reduce((a,b)=>a+b,0)/getTgt(s,0)*100).toFixed(1):0)}%</span></div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:10px">NT$${fw((d[s]||[]).reduce((a,b)=>a+b,0))}萬 / 目標 ${fw(getTgt(s,0))}萬</div><div style="position:relative;height:130px"><canvas id="sc${i}"></canvas></div></div>`).join('');setTimeout(()=>{STORES.forEach((s,i)=>{const c=document.getElementById('sc'+i);if(!c)return;if(CH['sc'+i])CH['sc'+i].destroy();const d2=annualYr===2026?D26:D25,d3=annualYr===2026?D25:D26;CH['sc'+i]=new Chart(c,{data:{labels:['1','2','3','4','5','6','7','8','9','10','11','12'].map(m=>m+'月'),datasets:[{type:'bar',label:String(annualYr),data:d2[s],backgroundColor:S_COL[i]+'30',borderColor:S_COL[i],borderWidth:1.5,borderRadius:3},{type:'bar',label:String(annualYr===2026?2025:2024),data:d3[s],backgroundColor:'rgba(226,206,185,.4)',borderColor:'#CFA294',borderWidth:1,borderRadius:3},{type:'line',label:'目標',data:TARGETS[s],borderColor:'#A54A1A55',borderWidth:1.5,pointRadius:0,fill:false,borderDash:[4,4]}]},options:{...cOpts(),scales:{x:{grid:{display:false},ticks:{color:'#b09a88',font:{family:'Space Mono',size:9}}},y:{grid:{color:'rgba(40,66,52,.04)'},ticks:{color:'#b09a88',font:{family:'Space Mono',size:9}}}}}});});},100);}
 function renderYoyTable(){const lbs=['1','2','3','4','5','6','7','8','9','10','11','12'];document.getElementById('yoy-tbl').innerHTML=`<thead><tr><th>月份</th>${STORES4.map((s,i)=>`<th style="color:${S_COL[i]}">${s} 2025</th><th style="color:${S_COL[i]}">2026</th><th>YoY</th>`).join('')}</tr></thead><tbody>`+lbs.map((_,mi)=>`<tr><td style="color:var(--text-muted)">${mi+1}月</td>${STORES4.map(s=>{const a=D26[s][mi],b=D25[s][mi];const yoy=b>0?parseFloat(((a-b)/b*100).toFixed(1)):null;return`<td style="color:var(--text-muted)">${b||'—'}</td><td style="font-weight:700">${a||'—'}</td><td class="${yoy!==null?(yoy>=0?'tp':'tn'):''}">${yoy!==null?(yoy>=0?'▲ +':'▼ ')+Math.abs(yoy)+'%':'—'}</td>`;}).join('')}</tr>`).join('')+'</tbody>';}
 function selectAnnualYear(y,btn){annualYr=y;document.querySelectorAll('.yr-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAnnual();}
-function switchTab(tab,btn){document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));document.getElementById('panel-'+tab).classList.add('active');if(tab==='monthly')renderMonthly();if(tab==='annual')renderAnnual();}
+function switchTab(tab,btn){document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));document.getElementById('panel-'+tab).classList.add('active');if(tab==='monthly')renderMonthly();if(tab==='annual')renderAnnual();if(tab==='gbp')loadGbpData();}
+const GBP_STORES=['台北松菸店','台北東門店','台北中山店','台中園道店'];
+const GBP_EMO=['🌿','🚪','🏙️','🏔️'];
+const GBP_COL=['#284234','#5a8a6e','#A54A1A','#8D5531'];
+const GBP_WEEKS=['W09','W10','W11','W12','W13','W14','W15','W16'];
+const MOCK_GBP=[
+  {store:'台北松菸店',search:4820,map:2190,nav:312,phone:85,web:203,wTrend:[3800,3950,4100,4250,4400,4600,4750,4820],mTrend:[1800,1890,1950,2020,2100,2150,2180,2190]},
+  {store:'台北東門店',search:3650,map:1830,nav:228,phone:72,web:165,wTrend:[2900,3000,3100,3200,3300,3450,3580,3650],mTrend:[1400,1450,1520,1580,1650,1720,1780,1830]},
+  {store:'台北中山店',search:5120,map:2480,nav:356,phone:98,web:241,wTrend:[4100,4250,4450,4600,4750,4900,5020,5120],mTrend:[1950,2050,2150,2220,2300,2380,2430,2480]},
+  {store:'台中園道店',search:3280,map:1560,nav:195,phone:61,web:142,wTrend:[2600,2680,2780,2900,3000,3100,3200,3280],mTrend:[1200,1250,1320,1380,1430,1490,1530,1560]}
+];
+let gbpLoaded=false,gbpTrendChart=null;
+async function loadGbpData(){
+  if(gbpLoaded)return;gbpLoaded=true;
+  try{
+    const rows=await loadGviz('GBP數據');
+    if(!rows||rows.length<2){renderGbpWithMock(true);return;}
+    renderGbpWithMock(false);
+  }catch(e){renderGbpWithMock(true);}
+}
+function renderGbpWithMock(showBanner){
+  if(showBanner)document.getElementById('gbp-mock-banner').style.display='flex';
+  document.getElementById('gbp-period').textContent='W09 – W16（模擬資料）';
+  renderGbpCards(MOCK_GBP);renderGbpTrend(MOCK_GBP);renderGbpRank(MOCK_GBP);
+}
+function renderGbpCards(data){
+  document.getElementById('gbp-cards').innerHTML=data.map((d,i)=>{
+    const total=d.search+d.map,mapPct=Math.round(d.map/total*100),sPct=100-mapPct;
+    return`<div class="store-card" style="--sc-color:${GBP_COL[i]}">
+      <div class="sc-name">${GBP_EMO[i]} ${d.store}</div>
+      <div class="sc-grid">
+        <div class="sc-kpi sc-kpi-main"><div class="sc-kpi-l">總曝光次數</div><div class="sc-kpi-v">${total.toLocaleString('zh-TW')}</div></div>
+        <div class="sc-kpi"><div class="sc-kpi-l">搜尋曝光</div><div class="sc-kpi-v">${d.search.toLocaleString('zh-TW')}</div></div>
+        <div class="sc-kpi"><div class="sc-kpi-l">地圖曝光</div><div class="sc-kpi-v">${d.map.toLocaleString('zh-TW')}</div></div>
+        <div class="sc-kpi"><div class="sc-kpi-l">導航請求</div><div class="sc-kpi-v">${d.nav}</div></div>
+        <div class="sc-kpi"><div class="sc-kpi-l">電話點擊</div><div class="sc-kpi-v">${d.phone}</div></div>
+      </div>
+      <div class="sc-ratio-label"><span>搜尋 ${sPct}%</span><span>地圖 ${mapPct}%</span></div>
+      <div class="sc-ratio-bar"><div style="flex:${sPct};background:${GBP_COL[i]}"></div><div class="ratio-map" style="flex:${mapPct}"></div></div>
+    </div>`;
+  }).join('');
+}
+function renderGbpTrend(data){
+  const el=document.getElementById('gbp-trend-chart');
+  if(gbpTrendChart){gbpTrendChart.destroy();gbpTrendChart=null;}
+  gbpTrendChart=new Chart(el,{type:'line',data:{labels:GBP_WEEKS,datasets:data.map((d,i)=>({label:d.store,data:d.wTrend.map((s,j)=>s+(d.mTrend[j]||0)),borderColor:GBP_COL[i],backgroundColor:GBP_COL[i]+'18',borderWidth:2,pointRadius:3,pointBackgroundColor:GBP_COL[i],fill:false,tension:.4}))},options:cOpts()});
+  document.getElementById('gbp-trend-legend').innerHTML=data.map((d,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${GBP_COL[i]}"></div>${d.store}</div>`).join('');
+}
+function renderGbpRank(data){
+  const metrics=[{key:'nav',label:'導航請求'},{key:'phone',label:'電話點擊'},{key:'web',label:'網站點擊'}];
+  document.getElementById('gbp-rank-bars').innerHTML=metrics.map(m=>{
+    const sorted=[...data].sort((a,b)=>b[m.key]-a[m.key]);
+    const maxV=Math.max(...sorted.map(d=>d[m.key]));
+    return`<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:700;color:var(--text-sub);margin-bottom:6px;font-family:'Space Mono',monospace">${m.label}</div>`+
+    sorted.map(d=>{const i=data.indexOf(d);const pct=Math.round(d[m.key]/maxV*100);
+      return`<div class="gbp-bar-row" style="margin-bottom:5px">
+        <div class="gbp-bar-name">${GBP_EMO[i]} ${d.store.replace('台北','').replace('台中園道','台中')}</div>
+        <div class="gbp-bar-track"><div class="gbp-bar-fill" style="width:${pct}%;background:${GBP_COL[i]}"><span class="gbp-bar-val">${d[m.key]}</span></div></div>
+      </div>`;}).join('')+'</div>';
+  }).join('');
+}
 (function tick(){const n=new Date();document.getElementById('clock').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>('0'+v).slice(-2)).join(':');setTimeout(tick,1000);})();
 loadData();
 </script>
