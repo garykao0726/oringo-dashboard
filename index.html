@@ -482,19 +482,22 @@ async function loadGbpData(){
       if(!visMap[wkLabel])visMap[wkLabel]={};
       visMap[wkLabel][gbpName]=(visMap[wkLabel][gbpName]||0)+vis;
     });
-    // Group GBP rows by store
+    // Group GBP rows by store, deduplicate by week (keep last/most-complete entry)
     const storeMap={};
     rows.forEach(r=>{
       const name=String(r[2]||'').trim();
       if(!name)return;
       if(!storeMap[name])storeMap[name]=[];
-      storeMap[name].push({
+      const entry={
         week:String(r[1]||''),
         search:Number(r[3])||0, map:Number(r[4])||0,
         nav:Number(r[5])||0, phone:Number(r[6])||0, web:Number(r[7])||0,
         rating:Number(r[8])||0, reviews:Number(r[9])||0, weeklyReviews:Number(r[10])||0,
         photos:Number(r[11])||0, weeklyPhotos:Number(r[12])||0, updateRate:Number(r[13])||0,
-      });
+      };
+      const idx=storeMap[name].findIndex(e=>e.week===entry.week);
+      if(idx>=0)storeMap[name][idx]=entry; // replace with latest (more complete) data
+      else storeMap[name].push(entry);
     });
     const hasData=GBP_STORES.some(n=>storeMap[n]&&storeMap[n].length>0);
     if(!hasData){renderGbpWithMock(true);return;}
@@ -530,9 +533,18 @@ function renderGbpWithMock(showBanner){
 const _gbpCorrCharts=[];
 function renderGbpCorr(data,weekLabels){
   _gbpCorrCharts.forEach(c=>c.destroy());_gbpCorrCharts.length=0;
-  const hasVis=data.some(d=>(d.vis8||[]).some(v=>v>0));
+  // Count weeks with any visitor data across all stores
+  const weeksWithVis=weekLabels.filter((_,wi)=>data.some(d=>(d.vis8||[])[wi]>0)).length;
   const note=document.getElementById('gbp-corr-note');
-  if(note)note.style.display=hasVis?'none':'block';
+  const grid=document.getElementById('gbp-corr-charts');
+  if(weeksWithVis<3){
+    if(note)note.textContent=`來客資料累積中（目前 ${weeksWithVis} 週），累積 3 週後自動顯示圖表。`;
+    if(note)note.style.display='block';
+    if(grid)grid.style.display='none';
+    return;
+  }
+  if(note)note.style.display='none';
+  if(grid)grid.style.display='grid';
   data.forEach((d,i)=>{
     const ctx=document.getElementById('gbp-corr-'+i);
     if(!ctx)return;
