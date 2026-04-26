@@ -440,10 +440,10 @@ const GBP_EMO=['🌿','🚪','🏙️','🏔️'];
 const GBP_COL=['#284234','#5a8a6e','#A54A1A','#8D5531'];
 const GBP_WEEKS=['W09','W10','W11','W12','W13','W14','W15','W16'];
 const MOCK_GBP=[
-  {store:'台北松菸店',search:4820,map:2190,nav:312,phone:85,web:203,rating:4.8,reviews:312,weeklyReviews:3,wTrend:[3800,3950,4100,4250,4400,4600,4750,4820],mTrend:[1800,1890,1950,2020,2100,2150,2180,2190]},
-  {store:'台北東門店',search:3650,map:1830,nav:228,phone:72,web:165,rating:4.7,reviews:248,weeklyReviews:2,wTrend:[2900,3000,3100,3200,3300,3450,3580,3650],mTrend:[1400,1450,1520,1580,1650,1720,1780,1830]},
-  {store:'台北中山店',search:5120,map:2480,nav:356,phone:98,web:241,rating:4.9,reviews:425,weeklyReviews:5,wTrend:[4100,4250,4450,4600,4750,4900,5020,5120],mTrend:[1950,2050,2150,2220,2300,2380,2430,2480]},
-  {store:'台中園道店',search:3280,map:1560,nav:195,phone:61,web:142,rating:4.8,reviews:196,weeklyReviews:2,wTrend:[2600,2680,2780,2900,3000,3100,3200,3280],mTrend:[1200,1250,1320,1380,1430,1490,1530,1560]}
+  {store:'台北松菸店',search:4820,map:2190,nav:312,phone:85,web:203,rating:4.8,reviews:312,weeklyReviews:3,photos:184,weeklyPhotos:2,updateRate:87,wTrend:[3800,3950,4100,4250,4400,4600,4750,4820],mTrend:[1800,1890,1950,2020,2100,2150,2180,2190]},
+  {store:'台北東門店',search:3650,map:1830,nav:228,phone:72,web:165,rating:4.7,reviews:248,weeklyReviews:2,photos:142,weeklyPhotos:1,updateRate:75,wTrend:[2900,3000,3100,3200,3300,3450,3580,3650],mTrend:[1400,1450,1520,1580,1650,1720,1780,1830]},
+  {store:'台北中山店',search:5120,map:2480,nav:356,phone:98,web:241,rating:4.9,reviews:425,weeklyReviews:5,photos:256,weeklyPhotos:4,updateRate:95,wTrend:[4100,4250,4450,4600,4750,4900,5020,5120],mTrend:[1950,2050,2150,2220,2300,2380,2430,2480]},
+  {store:'台中園道店',search:3280,map:1560,nav:195,phone:61,web:142,rating:4.8,reviews:196,weeklyReviews:2,photos:118,weeklyPhotos:1,updateRate:62,wTrend:[2600,2680,2780,2900,3000,3100,3200,3280],mTrend:[1200,1250,1320,1380,1430,1490,1530,1560]}
 ];
 let gbpLoaded=false,gbpTrendChart=null;
 async function loadGbpData(){
@@ -471,6 +471,8 @@ function renderGbpCards(data){
         <div class="sc-kpi"><div class="sc-kpi-l">地圖曝光</div><div class="sc-kpi-v">${d.map.toLocaleString('zh-TW')}</div></div>
         <div class="sc-kpi"><div class="sc-kpi-l">導航請求</div><div class="sc-kpi-v">${d.nav}</div></div>
         <div class="sc-kpi"><div class="sc-kpi-l">電話點擊</div><div class="sc-kpi-v">${d.phone}</div></div>
+        <div class="sc-kpi"><div class="sc-kpi-l">照片總數</div><div class="sc-kpi-v">${d.photos}<span style="font-size:11px;color:var(--positive);margin-left:5px;font-weight:400">+${d.weeklyPhotos}</span></div></div>
+        <div class="sc-kpi" style="border-left:2px solid ${d.updateRate>=80?'var(--positive)':d.updateRate>=60?'#b8860b':'var(--negative)'}"><div class="sc-kpi-l">貼文更新率</div><div class="sc-kpi-v" style="color:${d.updateRate>=80?'var(--positive)':d.updateRate>=60?'#b8860b':'var(--negative)'}">${d.updateRate}%</div></div>
       </div>
       <div class="sc-ratio-label"><span>搜尋 ${sPct}%</span><span>地圖 ${mapPct}%</span></div>
       <div class="sc-ratio-bar"><div style="flex:${sPct};background:${GBP_COL[i]}"></div><div class="ratio-map" style="flex:${mapPct}"></div></div>
