@@ -509,11 +509,11 @@ async function loadGbpData(){
       const entries=storeMap[name]||[];
       const latest=entries[entries.length-1]||{};
       const last8=entries.slice(-8);
-      const last4=entries.slice(-4);
       while(last8.length<8)last8.unshift({search:0,map:0,nav:0});
-      const monthlyReviews=last4.reduce((s,e)=>s+(e.weeklyReviews||0),0);
-      const monthlyPhotos=last4.reduce((s,e)=>s+(e.weeklyPhotos||0),0);
-      const monthlyPost=last4.some(e=>(e.updateRate||0)>0);
+      // GAS 每週重算最近 30 天，直接用最新一筆即可
+      const monthlyReviews=latest.weeklyReviews||0;
+      const monthlyPhotos=latest.weeklyPhotos||0;
+      const monthlyPost=(latest.updateRate||0)>0;
       return{store:name,...latest,
         wTrend:last8.map(e=>e.search||0),
         mTrend:last8.map(e=>e.map||0),
