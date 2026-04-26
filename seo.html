@@ -3,24 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>林果良品｜SEO 監控</title>
+<title>林果良品｜SEO 指揮中心</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--green:#284234;--dark:#002721;--sand:#E2CEB9;--sand-light:#F5EDE3;--rust:#A54A1A;--gray-pink:#CFA294;--brown:#8D5531;--bg:#F5EDE3;--surface:#ffffff;--surface2:#FAF5EF;--border:rgba(40,66,52,0.10);--border2:rgba(40,66,52,0.22);--text:#284234;--text-sub:#8D5531;--text-muted:#b09a88;--positive:#1a7a4a;--negative:#c0392b;--warn:#b8860b}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh}
+/* Header */
 .hdr{position:sticky;top:0;z-index:100;background:var(--green);height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem}
 .brand{display:flex;align-items:center;gap:14px}
 .brand-name{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.1em;color:var(--sand)}
 .brand-sep{width:1px;height:16px;background:rgba(226,206,185,.3)}
 .brand-sub{font-size:10px;color:var(--gray-pink);font-family:'Space Mono',monospace}
-.hdr-r{display:flex;align-items:center;gap:14px}
+.hdr-r{display:flex;align-items:center;gap:12px}
 .back-btn{padding:5px 14px;font-size:11px;font-family:'Space Mono',monospace;color:var(--sand);background:rgba(226,206,185,.12);border:1px solid rgba(226,206,185,.25);border-radius:6px;cursor:pointer;text-decoration:none;transition:all .18s}
 .back-btn:hover{background:rgba(226,206,185,.22)}
 .data-tag{padding:3px 10px;border-radius:20px;border:1px solid rgba(226,206,185,.25);font-size:10px;font-family:'Space Mono',monospace;color:var(--gray-pink)}
 .live-dot{width:7px;height:7px;border-radius:50%;background:#5be8a0;box-shadow:0 0 8px #5be8a0;animation:blink 2.5s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .hclock{font-family:'Space Mono',monospace;font-size:12px;color:var(--gray-pink)}
+/* Tab nav */
+.tab-nav{background:var(--green);display:flex;padding:0 2rem;border-bottom:2px solid rgba(226,206,185,.12);overflow-x:auto;gap:0}
+.tab-btn{padding:10px 20px;font-size:12px;font-weight:500;color:rgba(226,206,185,.5);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all .2s;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;letter-spacing:.04em}
+.tab-btn.active{color:var(--sand);border-bottom-color:var(--rust)}
+.tab-btn:hover:not(.active){color:rgba(226,206,185,.8)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+/* Layout */
 .container{max-width:1400px;margin:0 auto;padding:1.75rem 2rem}
 .sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .sec-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
@@ -29,59 +37,98 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
 .card-lbl{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
 .card-lbl::before{content:'';display:block;width:3px;height:12px;background:var(--rust);border-radius:2px}
-/* Tab switcher */
-.tab-nav{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:1.5rem}
-.tab-btn{padding:10px 24px;font-size:13px;font-weight:500;color:var(--text-muted);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all .2s;font-family:'Noto Sans TC',sans-serif}
-.tab-btn.active{color:var(--green);border-bottom-color:var(--rust);font-weight:700}
-.tab-btn:hover:not(.active){color:var(--text-sub)}
-.tab-panel{display:none}.tab-panel.active{display:block}
-/* Store selector */
+.card-badge{font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+@media(max-width:900px){.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.g3,.g2{grid-template-columns:1fr}}
+/* Mock banner */
+.mock-banner{background:#fffbe6;border:1px solid #d4a72c;border-radius:8px;padding:10px 16px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-family:'Space Mono',monospace;color:#b8860b;gap:12px}
+/* ── Tab 1: Health ── */
+.issue-card{background:rgba(192,57,43,.05);border:1.5px solid rgba(192,57,43,.2);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;gap:14px;align-items:flex-start}
+.issue-num{width:28px;height:28px;border-radius:50%;background:var(--negative);color:#fff;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.issue-title{font-size:13px;font-weight:700;color:var(--negative);margin-bottom:4px}
+.issue-desc{font-size:12px;color:var(--text-muted);line-height:1.6}
+.health-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:1.25rem}
+.hc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;align-items:flex-start;gap:10px}
+.hc-icon{font-size:18px;flex-shrink:0;line-height:1}
+.hc-body{}
+.hc-label{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px}
+.hc-desc{font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace;line-height:1.5}
+.hc.pass{border-left:3px solid var(--positive)}
+.hc.fail{border-left:3px solid var(--negative)}
+.hc.warn{border-left:3px solid var(--warn)}
+.score-wrap{display:flex;align-items:center;gap:1.5rem;padding:1.25rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:1.25rem}
+.score-ring{position:relative;width:80px;height:80px;flex-shrink:0}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.score-num{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;line-height:1}
+.score-lbl{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace}
+.score-info{flex:1}
+.score-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.score-sub{font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace;line-height:1.5}
+.audit-date{font-size:10px;font-family:'Space Mono',monospace;color:var(--text-muted);margin-top:6px}
+/* ── Tab 2: Opportunities ── */
+.opp-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;border:1px solid}
+.opp-high{background:rgba(26,122,74,.08);color:var(--positive);border-color:rgba(26,122,74,.2)}
+.opp-mid{background:rgba(184,134,11,.08);color:var(--warn);border-color:rgba(184,134,11,.2)}
+.opp-low{background:rgba(192,57,43,.06);color:var(--negative);border-color:rgba(192,57,43,.15)}
+.diff-badge{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'Space Mono',monospace;border:1px solid}
+.diff-high{background:rgba(192,57,43,.06);color:var(--negative);border-color:rgba(192,57,43,.15)}
+.diff-mid{background:rgba(184,134,11,.08);color:var(--warn);border-color:rgba(184,134,11,.2)}
+.diff-low{background:rgba(26,122,74,.08);color:var(--positive);border-color:rgba(26,122,74,.2)}
+.intent-tag{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'Space Mono',monospace;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted)}
+/* ── Tab 3: Rankings ── */
 .store-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem}
 .sp{padding:5px 14px;font-size:11px;font-family:'Space Mono',monospace;border-radius:20px;border:1px solid var(--border);cursor:pointer;transition:all .18s;background:transparent;color:var(--text-muted)}
 .sp:hover{border-color:var(--border2);color:var(--text)}.sp.active{background:var(--green);color:var(--sand);border-color:var(--green)}
-/* Keyword table */
+.rank-num{font-size:18px;font-weight:700;font-family:'Space Mono',monospace}
+.rank-good{color:var(--positive)}.rank-ok{color:var(--warn)}.rank-bad{color:var(--negative)}
+.rank-delta{font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:2px;font-family:'Space Mono',monospace}
+.delta-up{color:var(--positive)}.delta-down{color:var(--negative)}.delta-same{color:var(--text-muted)}
+.ad-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;font-family:'Space Mono',monospace;border:1px solid}
+.ad-tag.yes{background:rgba(192,57,43,.1);color:var(--negative);border-color:rgba(192,57,43,.2)}
+.ad-tag.no{background:rgba(26,122,74,.08);color:var(--positive);border-color:rgba(26,122,74,.15)}
+.alert-card{background:rgba(192,57,43,.06);border:1.5px solid rgba(192,57,43,.25);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem}
+.alert-hdr{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--negative);margin-bottom:.75rem}
+.alert-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(192,57,43,.1);font-size:12px}
+.alert-row:last-child{border-bottom:none}
+.alert-brand{font-family:'Space Mono',monospace;font-size:11px;color:var(--negative);background:rgba(192,57,43,.08);padding:2px 8px;border-radius:4px}
+/* ── Tab 4: Articles ── */
+.domain-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;font-family:'Space Mono',monospace;border:1px solid}
+/* ── Tab 5: Action Plan ── */
+.phase-hdr{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;margin-bottom:.85rem;padding-bottom:.6rem;border-bottom:2px solid var(--border)}
+.phase-badge{font-size:10px;font-family:'Space Mono',monospace;padding:2px 10px;border-radius:20px;font-weight:700}
+.phase-quick .phase-badge{background:rgba(165,74,26,.1);color:var(--rust);border:1px solid rgba(165,74,26,.2)}
+.phase-strategic .phase-badge{background:rgba(40,66,52,.08);color:var(--green);border:1px solid rgba(40,66,52,.18)}
+.action-item{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-radius:6px;padding-left:4px;padding-right:4px}
+.action-item:last-child{border-bottom:none}
+.action-item:hover{background:var(--surface2)}
+.action-item.done .action-text{text-decoration:line-through;color:var(--text-muted)}
+.action-item.done .action-title{color:var(--text-muted)}
+.action-cb{width:20px;height:20px;border:2px solid var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .18s;background:#fff}
+.action-item.done .action-cb{background:var(--positive);border-color:var(--positive);color:#fff}
+.action-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.action-desc{font-size:11px;color:var(--text-muted);line-height:1.6}
+.progress-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1.25rem}
+.prog-track{flex:1;height:8px;background:var(--sand);border-radius:4px;overflow:hidden}
+.prog-bar{height:100%;border-radius:4px;background:var(--positive);transition:width .5s cubic-bezier(.4,0,.2,1)}
+.prog-label{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--positive);min-width:40px;text-align:right}
+/* Shared table */
 .ctbl{width:100%;border-collapse:collapse;font-size:12px}
 .ctbl th{text-align:left;padding:8px 12px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--border);background:var(--surface2);white-space:nowrap}
-.ctbl td{padding:9px 12px;border-bottom:1px solid var(--border);font-family:'Space Mono',monospace;vertical-align:middle}
+.ctbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
 .ctbl tr:last-child td{border-bottom:none}
 .ctbl tr:hover td{background:var(--surface2)}
 .ctbl tr.has-ad{background:rgba(192,57,43,.04)}
 .ctbl tr.has-ad:hover td{background:rgba(192,57,43,.08)}
 .kw-name{font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:600;color:var(--text)}
-.rank-num{font-size:18px;font-weight:700}
-.rank-good{color:var(--positive)}.rank-ok{color:var(--warn)}.rank-bad{color:var(--negative)}
-.rank-delta{font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:2px}
-.delta-up{color:var(--positive)}.delta-down{color:var(--negative)}.delta-same{color:var(--text-muted)}
-.vol-badge{font-size:10px;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);padding:2px 7px;border-radius:4px}
-.ad-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:.04em}
-.ad-tag.yes{background:rgba(192,57,43,.1);color:var(--negative);border:1px solid rgba(192,57,43,.2)}
-.ad-tag.no{background:rgba(26,122,74,.08);color:var(--positive);border:1px solid rgba(26,122,74,.15)}
-/* Alert card */
-.alert-card{background:rgba(192,57,43,.06);border:1.5px solid rgba(192,57,43,.25);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem}
-.alert-hdr{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--negative);margin-bottom:.75rem}
-.alert-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(192,57,43,.1);font-size:12px}
-.alert-row:last-child{border-bottom:none}
-.alert-kw{font-family:'Noto Sans TC',sans-serif;font-weight:600;color:var(--text)}
-.alert-brand{font-family:'Space Mono',monospace;font-size:11px;color:var(--negative);background:rgba(192,57,43,.08);padding:2px 8px;border-radius:4px}
-/* Article table */
-.art-tbl{width:100%;border-collapse:collapse;font-size:12px}
-.art-tbl th{text-align:left;padding:8px 12px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--border);background:var(--surface2);white-space:nowrap}
-.art-tbl td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
-.art-tbl tr:last-child td{border-bottom:none}
-.art-tbl tr:hover td{background:var(--surface2)}
+.content-tag{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:9px;font-family:'Noto Sans TC',sans-serif;background:var(--sand-light);border:1px solid var(--border);color:var(--text-sub)}
+.vol-badge{font-size:10px;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);padding:2px 7px;border-radius:4px;font-family:'Space Mono',monospace}
+.num-cell{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--text)}
+.num-cell.hi{color:var(--rust)}
 .art-title{font-size:13px;font-weight:600;color:var(--green);text-decoration:none;font-family:'Noto Sans TC',sans-serif}
 .art-title:hover{text-decoration:underline}
-.domain-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:.04em;border:1px solid}
-.num-cell{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--text)}
-.num-cell.highlight{color:var(--rust)}
-/* Mock banner */
-.mock-banner{background:#fffbe6;border:1px solid #d4a72c;border-radius:8px;padding:10px 16px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-family:'Space Mono',monospace;color:#b8860b}
-.mock-banner span{font-weight:700}
-/* Empty state */
-.empty-state{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
-.empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.5}
-.empty-title{font-size:14px;font-weight:600;color:var(--text-sub);margin-bottom:.5rem}
-.empty-desc{font-size:12px;font-family:'Space Mono',monospace;line-height:1.6}
 .footer{background:var(--green);text-align:center;padding:1.25rem;font-size:11px;font-family:'Space Mono',monospace;color:var(--gray-pink);margin-top:2rem}
 </style>
 </head>
@@ -90,7 +137,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   <div class="brand">
     <span class="brand-name">ORINGO</span>
     <div class="brand-sep"></div>
-    <span class="brand-sub">SEO 監控</span>
+    <span class="brand-sub">SEO 指揮中心</span>
   </div>
   <div class="hdr-r">
     <div class="live-dot"></div>
@@ -100,105 +147,413 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   </div>
 </header>
 
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('health',this)">🏥 SEO 健康狀態</button>
+  <button class="tab-btn" onclick="switchTab('opp',this)">🎯 關鍵字機會</button>
+  <button class="tab-btn" onclick="switchTab('rankings',this)">📊 排名追蹤</button>
+  <button class="tab-btn" onclick="switchTab('articles',this)">📄 文章導流</button>
+  <button class="tab-btn" onclick="switchTab('plan',this)">✅ 行動計劃</button>
+</nav>
+
 <div class="container">
-  <div id="mock-banner-kw" class="mock-banner" style="display:none">
-    <span>⚠ 關鍵字排名：目前顯示範例資料</span>
-    <span>GAS 腳本設定完成後將自動切換為真實數據</span>
-  </div>
-  <div id="mock-banner-art" class="mock-banner" style="display:none">
-    <span>⚠ 文章導流：目前顯示範例資料</span>
-    <span>GAS 腳本設定完成後將自動切換為真實數據</span>
-  </div>
 
-  <!-- Tab switcher -->
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('keywords',this)">🔍 關鍵字排名</button>
-    <button class="tab-btn" onclick="switchTab('articles',this)">📄 文章導流</button>
-  </div>
+<!-- ══════════════════════════════════════════
+     Tab 1 · SEO 健康狀態
+     靜態稽核結果，稽核日期：2026/04/03
+     ══════════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-health">
 
-  <!-- Tab 1: Keywords -->
-  <div class="tab-panel active" id="panel-keywords">
-    <div class="sec-hdr">
-      <div class="sec-title">關鍵字排名追蹤</div>
-      <div id="kw-date" style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace"></div>
-    </div>
-
-    <div class="store-pills" id="store-pills">
-      <button class="sp active" onclick="filterStore('全部',this)">全部</button>
-      <button class="sp" onclick="filterStore('松菸',this)">🌿 松菸</button>
-      <button class="sp" onclick="filterStore('東門',this)">🚪 東門</button>
-      <button class="sp" onclick="filterStore('中山',this)">🏙️ 中山</button>
-      <button class="sp" onclick="filterStore('台中',this)">🏔️ 台中</button>
-      <button class="sp" onclick="filterStore('品牌詞',this)">🏷️ 品牌詞</button>
-    </div>
-
-    <!-- Competitor alert -->
-    <div id="ad-alert" style="display:none"></div>
-
-    <!-- Keyword table -->
-    <div class="card" style="padding:0;overflow:hidden">
-      <div style="overflow-x:auto">
-        <table class="ctbl" id="kw-table">
-          <thead><tr>
-            <th>關鍵字</th>
-            <th>門市分類</th>
-            <th>搜尋量/月</th>
-            <th style="text-align:center">目前排名</th>
-            <th style="text-align:center">上週排名</th>
-            <th style="text-align:center">排名變化</th>
-            <th>競品廣告</th>
-            <th>競品名稱</th>
-          </tr></thead>
-          <tbody id="kw-tbody"></tbody>
-        </table>
+  <!-- 整體評分 -->
+  <div class="score-wrap">
+    <div class="score-ring">
+      <svg viewBox="0 0 36 36">
+        <circle fill="none" stroke="#E2CEB9" stroke-width="3" cx="18" cy="18" r="15.9"/>
+        <circle fill="none" stroke="#b8860b" stroke-width="3" stroke-linecap="round"
+          cx="18" cy="18" r="15.9" stroke-dasharray="58, 100"/>
+      </svg>
+      <div class="score-center">
+        <div class="score-num" style="color:var(--warn)">58</div>
+        <div class="score-lbl">/100</div>
       </div>
     </div>
+    <div class="score-info">
+      <div class="score-title">整體 SEO 健康分數：⚠️ 需要改善</div>
+      <div class="score-sub">品牌能見度強，技術層面與內容架構有明確改善空間。<br>3 項致命問題（技術）+ 2 項警告（內容）待處理。</div>
+      <div class="audit-date">稽核日期：2026/04/03 · 下次稽核建議：2026/07/01</div>
+    </div>
   </div>
 
-  <!-- Tab 2: Articles -->
-  <div class="tab-panel" id="panel-articles">
-    <div class="sec-hdr">
-      <div class="sec-title">外部文章導流</div>
-      <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace">依週 Sessions 排序</div>
+  <!-- 三大核心問題 -->
+  <div class="sec-hdr"><div class="sec-title">三大核心問題</div></div>
+  <div class="issue-card">
+    <div class="issue-num">1</div>
+    <div>
+      <div class="issue-title">Blog 建在獨立子網域，SEO 權重外流</div>
+      <div class="issue-desc">blog.oringoshoes.com 與主站切斷，所有外部連結累積的 Domain Authority 無法回流給 oringoshoes.com，長期對排名傷害極大。</div>
     </div>
-    <div class="card" style="padding:0;overflow:hidden">
-      <div style="overflow-x:auto">
-        <table class="art-tbl" id="art-table">
-          <thead><tr>
-            <th>文章標題</th>
-            <th>來源網域</th>
-            <th style="text-align:right">週 Sessions</th>
-            <th style="text-align:right">月 Sessions</th>
-            <th style="text-align:right">週轉換</th>
-            <th style="text-align:right">月轉換</th>
-          </tr></thead>
-          <tbody id="art-tbody"></tbody>
-        </table>
+  </div>
+  <div class="issue-card">
+    <div class="issue-num">2</div>
+    <div>
+      <div class="issue-title">競品（MTSK）已搶先佔據高意圖推薦型文章</div>
+      <div class="issue-desc">「2026 皮鞋推薦」「上班鞋推薦」「面試鞋推薦」等高轉換率關鍵字，競爭對手已有完整文章。林果缺席這類買家意圖強的搜尋流量。</div>
+    </div>
+  </div>
+  <div class="issue-card">
+    <div class="issue-num">3</div>
+    <div>
+      <div class="issue-title">雙語內容缺乏 hreflang 設定</div>
+      <div class="issue-desc">網站有 /en/ 路徑，但中英文頁面未設定正確的 hreflang 標記，導致 Google 可能將兩個語言版本視為重複內容，互相稀釋排名。</div>
+    </div>
+  </div>
+
+  <!-- 技術健檢 -->
+  <div class="sec-hdr" style="margin-top:.5rem"><div class="sec-title">技術 SEO 健檢</div></div>
+  <div class="health-grid">
+    <div class="hc fail">
+      <div class="hc-icon">❌</div>
+      <div class="hc-body">
+        <div class="hc-label">Blog 架構</div>
+        <div class="hc-desc">子網域 blog.oringoshoes.com<br>SEO 權重與主站切斷</div>
+      </div>
+    </div>
+    <div class="hc fail">
+      <div class="hc-icon">❌</div>
+      <div class="hc-body">
+        <div class="hc-label">Hreflang 多語言</div>
+        <div class="hc-desc">有 /en/ 路徑但未設定<br>hreflang 標記</div>
+      </div>
+    </div>
+    <div class="hc pass">
+      <div class="hc-icon">✅</div>
+      <div class="hc-body">
+        <div class="hc-label">HTTPS</div>
+        <div class="hc-desc">全站使用 HTTPS<br>安全性正常</div>
+      </div>
+    </div>
+    <div class="hc pass">
+      <div class="hc-icon">✅</div>
+      <div class="hc-body">
+        <div class="hc-label">行動版友善</div>
+        <div class="hc-desc">可正常於手機搜尋<br>Mobile UX 通過</div>
+      </div>
+    </div>
+    <div class="hc warn">
+      <div class="hc-icon">⚠️</div>
+      <div class="hc-body">
+        <div class="hc-label">主要產品頁</div>
+        <div class="hc-desc">品類頁文字稀少（Thin Content）<br>有損排名</div>
+      </div>
+    </div>
+    <div class="hc warn">
+      <div class="hc-icon">⚠️</div>
+      <div class="hc-body">
+        <div class="hc-label">站內連結結構</div>
+        <div class="hc-desc">品類頁彼此連結不足<br>缺乏 Topic Cluster 架構</div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     Tab 2 · 關鍵字機會
+     ══════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-opp">
+  <div class="sec-hdr">
+    <div class="sec-title">關鍵字機會分析</div>
+    <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace">稽核日：2026/04/03</div>
+  </div>
+
+  <!-- Summary pills -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.25rem">
+    <div style="padding:8px 16px;background:rgba(26,122,74,.08);border:1px solid rgba(26,122,74,.18);border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;color:var(--positive)">
+      🟢 高機會 5 個
+    </div>
+    <div style="padding:8px 16px;background:rgba(184,134,11,.08);border:1px solid rgba(184,134,11,.18);border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;color:var(--warn)">
+      🟡 中機會 2 個
+    </div>
+    <div style="padding:8px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted)">
+      合計 8 個關鍵字機會
+    </div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="ctbl">
+        <thead><tr>
+          <th>關鍵字</th>
+          <th>難度</th>
+          <th style="text-align:center">機會</th>
+          <th>現況排名</th>
+          <th>搜尋意圖</th>
+          <th>建議內容形式</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="kw-name">皮鞋推薦</td>
+            <td><span class="diff-badge diff-high">高</span></td>
+            <td style="text-align:center"><span class="opp-badge opp-mid">🟡 中</span></td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--text-muted)">有出現但非前 3</td>
+            <td><span class="intent-tag">商業</span></td>
+            <td><span class="content-tag">品牌比較 + 選購指南</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">台灣手工皮鞋品牌</td>
+            <td><span class="diff-badge diff-mid">中</span></td>
+            <td style="text-align:center"><span class="opp-badge opp-high">🟢 高</span></td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--positive)">有排名</td>
+            <td><span class="intent-tag">商業</span></td>
+            <td><span class="content-tag">強化現有頁面</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">牛津鞋推薦</td>
+            <td><span class="diff-badge diff-mid">中</span></td>
+            <td style="text-align:center"><span class="opp-badge opp-high">🟢 高</span></td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--warn)">部分排名</td>
+            <td><span class="intent-tag">商業</span></td>
+            <td><span class="content-tag">Landing Page + 文章</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">德比鞋推薦</td>
+            <td><span class="diff-badge diff-mid">中</span></td>
+            <td style="text-align:center"><span class="opp-badge opp-high">🟢 高</span></td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--negative)">弱</td>
+            <td><span class="intent-tag">商業</span></td>
+            <td><span class="content-tag">選購指南文章</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">樂福鞋推薦</td>
+            <td><span class="diff-badge diff-mid">中</span></td>
+            <td style="text-align:center"><span class="opp-badge opp-high">🟢 高</span></td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--negative)">弱</td>
+            <td><span class="intent-tag">商業</span></td>
+            <td><span class="content-tag">選購指南文章</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">上班皮鞋推薦</td>
+            <td><span class="diff-badge diff-mid">中</span></td>
+            <td style="text-align:center"><span class="opp-badge opp-high">🟢 高</span></td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--negative)">缺席 ⚠</td>
+            <td><span class="intent-tag">商業</span></td>
+            <td><span class="content-tag">情境式文章</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">面試鞋推薦</td>
+            <td><span class="diff-badge diff-mid">中</span></td>
+            <td style="text-align:center"><span class="opp-badge opp-mid">🟡 中</span></td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--negative)">缺席 ⚠</td>
+            <td><span class="intent-tag">商業</span></td>
+            <td><span class="content-tag">情境式文章</span></td>
+          </tr>
+          <tr>
+            <td class="kw-name">皮鞋保養方法</td>
+            <td><span class="diff-badge diff-low">低</span></td>
+            <td style="text-align:center"><span class="opp-badge opp-high">🟢 高</span></td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--negative)">缺席 ⚠</td>
+            <td><span class="intent-tag">資訊</span></td>
+            <td><span class="content-tag">教學文章</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--surface2)">
+    <div class="card-hdr"><span class="card-lbl">競品分析：MTSK 的優勢</span></div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.8">
+      競爭對手 MTSK 已佔據大量「2026 XX推薦」類型的高搜尋量、高轉換意圖文章。
+      林果良品的品牌詞表現強，但在非品牌的商業意圖關鍵字上幾乎缺席。
+      <strong style="color:var(--negative)">建議優先製作 3–5 篇「情境型買家文章」</strong>（上班鞋、面試鞋、婚禮鞋），以低難度關鍵字切入，快速建立非品牌流量。
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Tab 3 · 排名追蹤（Live from Sheets）
+     ══════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-rankings">
+  <div id="mock-banner-kw" class="mock-banner" style="display:none">
+    <span>⚠ 目前顯示範例資料</span>
+    <span style="font-weight:normal">SEO關鍵字工作表有資料後將自動切換為真實數據</span>
+  </div>
+
+  <div class="sec-hdr">
+    <div class="sec-title">關鍵字排名追蹤</div>
+    <div id="kw-date" style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace"></div>
+  </div>
+
+  <div class="store-pills" id="store-pills">
+    <button class="sp active" onclick="filterStore('全部',this)">全部</button>
+    <button class="sp" onclick="filterStore('松菸',this)">🌿 松菸</button>
+    <button class="sp" onclick="filterStore('東門',this)">🚪 東門</button>
+    <button class="sp" onclick="filterStore('中山',this)">🏙️ 中山</button>
+    <button class="sp" onclick="filterStore('台中',this)">🏔️ 台中</button>
+    <button class="sp" onclick="filterStore('品牌詞',this)">🏷️ 品牌詞</button>
+  </div>
+
+  <div id="ad-alert"></div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="ctbl">
+        <thead><tr>
+          <th>關鍵字</th>
+          <th>門市分類</th>
+          <th>搜尋量 / 月</th>
+          <th style="text-align:center">目前排名</th>
+          <th style="text-align:center">上週排名</th>
+          <th style="text-align:center">排名變化</th>
+          <th>競品廣告</th>
+          <th>競品名稱</th>
+        </tr></thead>
+        <tbody id="kw-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Tab 4 · 文章導流（Live from Sheets）
+     ══════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-articles">
+  <div id="mock-banner-art" class="mock-banner" style="display:none">
+    <span>⚠ 目前顯示範例資料</span>
+    <span style="font-weight:normal">文章導流工作表有資料後將自動切換為真實數據</span>
+  </div>
+
+  <div class="sec-hdr">
+    <div class="sec-title">外部文章導流</div>
+    <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace">依週 Sessions 排序・GA4 Referral</div>
+  </div>
+
+  <!-- Summary KPIs -->
+  <div class="g3" id="art-kpis" style="margin-bottom:1.25rem"></div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="ctbl">
+        <thead><tr>
+          <th>文章標題</th>
+          <th>來源網域</th>
+          <th style="text-align:right">週 Sessions</th>
+          <th style="text-align:right">月 Sessions</th>
+          <th style="text-align:right">週轉換</th>
+          <th style="text-align:right">月轉換</th>
+        </tr></thead>
+        <tbody id="art-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Tab 5 · 行動計劃（Checklist with persistence）
+     ══════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-plan">
+  <div class="sec-hdr">
+    <div class="sec-title">行動計劃</div>
+    <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace">點擊項目標記完成・進度自動儲存</div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted);min-width:60px">整體進度</div>
+    <div class="prog-track"><div class="prog-bar" id="plan-bar" style="width:0%"></div></div>
+    <div class="prog-label" id="plan-pct">0%</div>
+    <div style="font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace" id="plan-count">0 / 7 完成</div>
+  </div>
+
+  <!-- Phase 1 -->
+  <div class="card">
+    <div class="phase-hdr phase-quick">
+      <span>⚡ 快速見效</span>
+      <span class="phase-badge">本週執行</span>
+    </div>
+    <div id="actions-quick">
+      <div class="action-item" onclick="toggleAction('q1',this)" id="ai-q1">
+        <div class="action-cb" id="cb-q1">✓</div>
+        <div>
+          <div class="action-title">修正品類頁 Thin Content</div>
+          <div class="action-desc">為牛津鞋、德比鞋、樂福鞋等各品類頁加入 150–250 字說明，包含主要關鍵字。每頁預計 30 分鐘。</div>
+        </div>
+      </div>
+      <div class="action-item" onclick="toggleAction('q2',this)" id="ai-q2">
+        <div class="action-cb" id="cb-q2">✓</div>
+        <div>
+          <div class="action-title">補強 Meta Description</div>
+          <div class="action-desc">為主要品類頁撰寫有 CTA 的 meta description，字數 150–160 字，包含關鍵字 + 品牌差異點。</div>
+        </div>
+      </div>
+      <div class="action-item" onclick="toggleAction('q3',this)" id="ai-q3">
+        <div class="action-cb" id="cb-q3">✓</div>
+        <div>
+          <div class="action-title">圖片 Alt Text 全面審查</div>
+          <div class="action-desc">確保所有商品圖的 alt text 包含款式名稱 + 關鍵字，格式：「林果良品 [款式] [顏色] 手工皮鞋」。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="card">
+    <div class="phase-hdr phase-strategic">
+      <span>📈 策略投資</span>
+      <span class="phase-badge">本季規劃</span>
+    </div>
+    <div id="actions-strategic">
+      <div class="action-item" onclick="toggleAction('s1',this)" id="ai-s1">
+        <div class="action-cb" id="cb-s1">✓</div>
+        <div>
+          <div class="action-title">Blog 搬遷至主網域（最高優先）</div>
+          <div class="action-desc">將 blog.oringoshoes.com 所有文章搬移至 oringoshoes.com/blog/，設定 301 redirect，是最高 ROI 的單一技術 SEO 行動。</div>
+        </div>
+      </div>
+      <div class="action-item" onclick="toggleAction('s2',this)" id="ai-s2">
+        <div class="action-cb" id="cb-s2">✓</div>
+        <div>
+          <div class="action-title">建立「情境型」買家文章（3–5 篇）</div>
+          <div class="action-desc">主題：面試鞋推薦、上班皮鞋推薦、婚禮皮鞋推薦。直接搶佔競品（MTSK）的高轉換流量，每篇目標排名前 5。</div>
+        </div>
+      </div>
+      <div class="action-item" onclick="toggleAction('s3',this)" id="ai-s3">
+        <div class="action-cb" id="cb-s3">✓</div>
+        <div>
+          <div class="action-title">Hreflang 正確設定</div>
+          <div class="action-desc">為所有中英文對應頁面（/en/ 路徑）加上 hreflang 標記，避免 Google 將兩個語言版本視為重複內容。</div>
+        </div>
+      </div>
+      <div class="action-item" onclick="toggleAction('s4',this)" id="ai-s4">
+        <div class="action-cb" id="cb-s4">✓</div>
+        <div>
+          <div class="action-title">加入 Schema 結構化資料</div>
+          <div class="action-desc">商品頁加入 Product schema（包含 Review + Price），Blog 文章加入 Article + FAQ schema，提升在 SERP 的顯示豐富度。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
 <footer class="footer">
-  林果良品 ORINGO｜SEO 監控｜每週一自動更新
+  林果良品 ORINGO｜SEO 指揮中心｜稽核日：2026/04/03
   <span style="opacity:.4;font-size:10px;display:block;margin-top:3px">INTERNAL USE ONLY · ©2026 ORINGO</span>
 </footer>
 
 <script>
 const SHEET_ID = '17hTgCpF0mBTHf3RcnDmRFrJMeLBn3nRdTMuG8l58QjY';
 
-/* Mock data */
+/* ── Mock data ── */
 const MOCK_KEYWORDS = [
-  // [更新時間, 門市, 關鍵字, 搜尋量, 目前排名, 上週排名, 排名變化, 有無競品廣告, 競品名稱]
   ['2026/04/21','松菸','台北皮鞋',2400,4,5,1,'N',''],
   ['2026/04/21','松菸','台北皮鞋推薦',1800,7,9,2,'Y','西班牙皮革坊'],
   ['2026/04/21','松菸','台北手工皮鞋',880,3,3,0,'N',''],
   ['2026/04/21','東門','台北皮鞋',2400,4,5,1,'N',''],
   ['2026/04/21','東門','台北皮鞋推薦',1800,7,9,2,'Y','西班牙皮革坊'],
-  ['2026/04/21','東門','台北手工皮鞋',880,3,3,0,'N',''],
+  ['2026/04/21','東門','台北手工皮鞋',880,3,3,0,'Y','ManStyle皮鞋'],
   ['2026/04/21','中山','台北皮鞋',2400,4,5,1,'N',''],
   ['2026/04/21','中山','台北皮鞋推薦',1800,7,9,2,'Y','西班牙皮革坊'],
-  ['2026/04/21','中山','台北手工皮鞋',880,3,3,0,'Y','ManStyle皮鞋'],
+  ['2026/04/21','中山','台北手工皮鞋',880,3,3,0,'N',''],
   ['2026/04/21','台中','台中皮鞋',1600,2,3,1,'N',''],
   ['2026/04/21','台中','台中皮鞋推薦',1200,5,6,1,'Y','DAPPER臺灣'],
   ['2026/04/21','台中','台中手工皮鞋',540,1,1,0,'N',''],
@@ -206,9 +561,7 @@ const MOCK_KEYWORDS = [
   ['2026/04/21','品牌詞','oringo',2100,1,1,0,'N',''],
   ['2026/04/21','品牌詞','台灣皮鞋品牌',1400,3,4,1,'Y','G.T. Company'],
 ];
-
 const MOCK_ARTICLES = [
-  // [更新時間, 文章標題, 來源網域, 週Sessions, 週轉換, 月Sessions, 月轉換, 文章URL]
   ['2026/04/21','2026 台北必逛！5雙手工皮鞋品牌推薦','manstyle.com',342,12,1280,44,'https://manstyle.com/'],
   ['2026/04/21','林果良品評測：台灣皮鞋工藝深度報告','gq.com.tw',280,9,1050,35,'https://gq.com.tw/'],
   ['2026/04/21','職場穿搭指南：皮鞋品牌完整評比','cheers.com.tw',198,7,780,28,'https://cheers.com.tw/'],
@@ -217,185 +570,183 @@ const MOCK_ARTICLES = [
   ['2026/04/21','紳士鞋選購完全指南 2026','cw.com.tw',98,4,390,17,'https://cw.com.tw/'],
   ['2026/04/21','台中購物：皮鞋職人工坊特集','taichung-life.tw',74,2,295,8,'https://taichung-life.tw/'],
 ];
-
 const DOMAIN_COLORS = {
-  'manstyle.com': { bg:'#1a3a5c', text:'#fff' },
-  'gq.com.tw': { bg:'#222', text:'#fff' },
-  'cheers.com.tw': { bg:'#005baf', text:'#fff' },
-  'esquire.com.tw': { bg:'#c80000', text:'#fff' },
-  'storm.mg': { bg:'#444', text:'#fff' },
-  'cw.com.tw': { bg:'#005baf', text:'#fff' },
-  'taichung-life.tw': { bg:'#284234', text:'#fff' },
+  'manstyle.com':{'bg':'#1a3a5c','text':'#fff'},
+  'gq.com.tw':{'bg':'#222','text':'#fff'},
+  'cheers.com.tw':{'bg':'#005baf','text':'#fff'},
+  'esquire.com.tw':{'bg':'#c80000','text':'#fff'},
+  'storm.mg':{'bg':'#444','text':'#fff'},
+  'cw.com.tw':{'bg':'#2c5f9e','text':'#fff'},
+  'taichung-life.tw':{'bg':'#284234','text':'#fff'},
 };
 
-let kwData = [];
-let artData = [];
-let currentFilter = '全部';
-
+let kwData = [], artData = [], currentFilter = '全部';
 let _seq = 0;
-function loadGviz(sheetName) {
-  return new Promise((resolve, reject) => {
-    const cb = '_seoCb' + (++_seq);
-    window[cb] = function(resp) {
+
+function loadGviz(sheetName){
+  return new Promise((resolve,reject)=>{
+    const cb='_seoCb'+(++_seq);
+    window[cb]=function(resp){
       delete window[cb];
-      const rows = (resp.table.rows || []).map(r =>
-        (r.c || []).map(cell => cell ? cell.v : null)
-      );
-      resolve(rows);
+      resolve((resp.table.rows||[]).map(r=>(r.c||[]).map(c=>c?c.v:null)));
     };
-    const s = document.createElement('script');
-    s.onerror = () => { delete window[cb]; reject(new Error('Load failed: ' + sheetName)); };
-    s.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}&sheet=${encodeURIComponent(sheetName)}`;
+    const s=document.createElement('script');
+    s.onerror=()=>{delete window[cb];reject(new Error(sheetName));};
+    s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}&sheet=${encodeURIComponent(sheetName)}`;
     document.head.appendChild(s);
   });
 }
 
-async function loadData() {
-  // Load keywords
-  let kwMock = false, artMock = false;
-  try {
-    const rows = await loadGviz('SEO關鍵字');
-    const filtered = rows.filter(r => r[2]);
-    if (filtered.length === 0) kwMock = true;
-    else kwData = filtered;
-  } catch(e) { kwMock = true; }
+async function loadData(){
+  let kwMock=false, artMock=false;
+  try{
+    const rows=await loadGviz('SEO關鍵字');
+    const f=rows.filter(r=>r[2]);
+    if(!f.length) kwMock=true; else kwData=f;
+  }catch(e){kwMock=true;}
+  if(kwMock){document.getElementById('mock-banner-kw').style.display='flex';kwData=MOCK_KEYWORDS;}
 
-  if (kwMock) {
-    document.getElementById('mock-banner-kw').style.display = 'flex';
-    kwData = MOCK_KEYWORDS;
-  }
+  try{
+    const rows=await loadGviz('文章導流');
+    const f=rows.filter(r=>r[1]);
+    if(!f.length) artMock=true; else artData=f;
+  }catch(e){artMock=true;}
+  if(artMock){document.getElementById('mock-banner-art').style.display='flex';artData=MOCK_ARTICLES;}
 
-  // Load articles
-  try {
-    const rows = await loadGviz('文章導流');
-    const filtered = rows.filter(r => r[1]);
-    if (filtered.length === 0) artMock = true;
-    else artData = filtered;
-  } catch(e) { artMock = true; }
-
-  if (artMock) {
-    document.getElementById('mock-banner-art').style.display = 'flex';
-    artData = MOCK_ARTICLES;
-  }
-
-  document.getElementById('data-tag').textContent = (!kwMock && !artMock) ? 'LIVE DATA' : '部分範例';
-  const date = kwData[0] ? kwData[0][0] || '' : '';
-  document.getElementById('kw-date').textContent = date ? '更新：' + date : '';
+  document.getElementById('data-tag').textContent=(!kwMock&&!artMock)?'LIVE DATA':'部分範例';
+  const d=kwData[0]?kwData[0][0]||'':'';
+  document.getElementById('kw-date').textContent=d?'更新：'+d:'';
 
   renderKeywords();
   renderArticles();
+  loadPlanState();
 }
 
-function rankClass(r) {
-  if (!r || r <= 0) return 'rank-bad';
-  if (r <= 3) return 'rank-good';
-  if (r <= 10) return 'rank-ok';
-  return 'rank-bad';
+/* ── Rankings ── */
+function rankClass(r){
+  if(!r||r<=0)return'rank-bad';
+  if(r<=3)return'rank-good';
+  if(r<=10)return'rank-ok';
+  return'rank-bad';
 }
-
-function renderKeywords() {
-  const filtered = currentFilter === '全部'
-    ? kwData
-    : kwData.filter(r => String(r[1]).includes(currentFilter));
-
-  // Build competitor alerts
-  const ads = filtered.filter(r => r[7] === 'Y' && r[8]);
-  const adAlert = document.getElementById('ad-alert');
-  if (ads.length > 0) {
-    const alertMap = {};
-    ads.forEach(r => {
-      const brand = r[8];
-      if (!alertMap[brand]) alertMap[brand] = [];
-      alertMap[brand].push(r[2]);
-    });
-    adAlert.style.display = 'block';
-    adAlert.innerHTML = `<div class="alert-card">
+function renderKeywords(){
+  const filtered=currentFilter==='全部'?kwData:kwData.filter(r=>String(r[1]).includes(currentFilter));
+  const ads=filtered.filter(r=>r[7]==='Y'&&r[8]);
+  const adAlert=document.getElementById('ad-alert');
+  if(ads.length){
+    const map={};
+    ads.forEach(r=>{if(!map[r[8]])map[r[8]]=[];map[r[8]].push(r[2]);});
+    adAlert.innerHTML=`<div class="alert-card" style="margin-bottom:1.25rem">
       <div class="alert-hdr">⚠️ 競品廣告警示：${ads.length} 個關鍵字偵測到競品投放</div>
-      ${Object.entries(alertMap).map(([brand, kws]) =>
-        kws.map(kw => `<div class="alert-row">
-          <span class="alert-kw">${kw}</span>
-          <span style="color:var(--text-muted);font-size:11px">→</span>
-          <span class="alert-brand">競品：${brand}</span>
-        </div>`).join('')
-      ).join('')}
+      ${Object.entries(map).map(([brand,kws])=>kws.map(kw=>`<div class="alert-row">
+        <span style="font-family:'Noto Sans TC',sans-serif;font-weight:600">${kw}</span>
+        <span style="color:var(--text-muted);font-size:11px">→</span>
+        <span class="alert-brand">競品：${brand}</span>
+      </div>`).join('')).join('')}
     </div>`;
-  } else {
-    adAlert.style.display = 'none';
-  }
+  } else { adAlert.innerHTML=''; }
 
-  const tbody = document.getElementById('kw-tbody');
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace">此分類尚無資料</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = filtered.map(r => {
-    const [, store, kw, vol, curRank, prevRank, delta, hasAd, adBrand] = r;
-    const rank = Number(curRank) || 0;
-    const prev = Number(prevRank) || 0;
-    const chg = Number(delta) || 0;
-    const ad = hasAd === 'Y';
-
-    const deltaHtml = chg > 0
-      ? `<span class="rank-delta delta-up">↑ +${chg}</span>`
-      : chg < 0
-        ? `<span class="rank-delta delta-down">↓ ${chg}</span>`
-        : `<span class="rank-delta delta-same">— 持平</span>`;
-
-    return `<tr class="${ad ? 'has-ad' : ''}">
-      <td class="kw-name">${kw || ''}</td>
-      <td><span style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace">${store || ''}</span></td>
-      <td><span class="vol-badge">${vol ? Number(vol).toLocaleString() : '—'}</span></td>
-      <td style="text-align:center"><span class="rank-num ${rankClass(rank)}">${rank > 0 ? rank : '—'}</span></td>
-      <td style="text-align:center;color:var(--text-muted);font-family:'Space Mono',monospace">${prev > 0 ? prev : '—'}</td>
-      <td style="text-align:center">${deltaHtml}</td>
-      <td><span class="ad-tag ${ad ? 'yes' : 'no'}">${ad ? '⚠ 有' : '✓ 無'}</span></td>
-      <td style="font-size:11px;color:var(--negative);font-family:'Space Mono',monospace">${adBrand || (ad ? '未知' : '')}</td>
+  const tbody=document.getElementById('kw-tbody');
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace">此分類尚無資料</td></tr>`;return;}
+  tbody.innerHTML=filtered.map(r=>{
+    const[,store,kw,vol,cur,prev,delta,hasAd,adBrand]=r;
+    const rank=Number(cur)||0,chg=Number(delta)||0,ad=hasAd==='Y';
+    const dHtml=chg>0?`<span class="rank-delta delta-up">↑ +${chg}</span>`:chg<0?`<span class="rank-delta delta-down">↓ ${chg}</span>`:`<span class="rank-delta delta-same">— 持平</span>`;
+    return`<tr class="${ad?'has-ad':''}">
+      <td class="kw-name">${kw||''}</td>
+      <td style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace">${store||''}</td>
+      <td><span class="vol-badge">${vol?Number(vol).toLocaleString():'—'}</span></td>
+      <td style="text-align:center"><span class="rank-num ${rankClass(rank)}">${rank>0?rank:'—'}</span></td>
+      <td style="text-align:center;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:12px">${Number(prev)>0?prev:'—'}</td>
+      <td style="text-align:center">${dHtml}</td>
+      <td><span class="ad-tag ${ad?'yes':'no'}">${ad?'⚠ 有':'✓ 無'}</span></td>
+      <td style="font-size:11px;color:var(--negative);font-family:'Space Mono',monospace">${adBrand||''}</td>
     </tr>`;
   }).join('');
 }
-
-function filterStore(store, btn) {
-  currentFilter = store;
-  document.querySelectorAll('.sp').forEach(b => b.classList.remove('active'));
+function filterStore(s,btn){
+  currentFilter=s;
+  document.querySelectorAll('.sp').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderKeywords();
 }
 
-function renderArticles() {
-  const sorted = [...artData].sort((a, b) => (Number(b[3]) || 0) - (Number(a[3]) || 0));
-  const tbody = document.getElementById('art-tbody');
+/* ── Articles ── */
+function renderArticles(){
+  const sorted=[...artData].sort((a,b)=>(Number(b[3])||0)-(Number(a[3])||0));
+  const totalWeek=sorted.reduce((s,r)=>s+(Number(r[3])||0),0);
+  const totalMonth=sorted.reduce((s,r)=>s+(Number(r[5])||0),0);
+  const totalConv=sorted.reduce((s,r)=>s+(Number(r[4])||0),0);
+  const kpis=[
+    {l:'文章總數',v:sorted.length+'篇',c:'var(--green)'},
+    {l:'週導流 Sessions',v:totalWeek.toLocaleString(),c:'var(--rust)'},
+    {l:'月導流 Sessions',v:totalMonth.toLocaleString(),c:'var(--brown)'},
+  ];
+  document.getElementById('art-kpis').innerHTML=kpis.map(k=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem">
+      <div style="font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">${k.l}</div>
+      <div style="font-size:24px;font-weight:700;font-family:'Space Mono',monospace;color:${k.c}">${k.v}</div>
+    </div>`).join('');
 
-  if (sorted.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace">尚無文章導流資料</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = sorted.map((r, i) => {
-    const [, title, domain, weekSess, weekConv, monthSess, monthConv, url] = r;
-    const dc = DOMAIN_COLORS[domain] || { bg: '#8D5531', text: '#fff' };
-    return `<tr>
-      <td><a href="${url || '#'}" target="_blank" class="art-title">${title || ''}</a></td>
-      <td><span class="domain-tag" style="background:${dc.bg};color:${dc.text};border-color:${dc.bg}">${domain || ''}</span></td>
-      <td style="text-align:right"><span class="num-cell highlight">${Number(weekSess || 0).toLocaleString()}</span></td>
-      <td style="text-align:right"><span class="num-cell">${Number(monthSess || 0).toLocaleString()}</span></td>
-      <td style="text-align:right"><span class="num-cell">${weekConv || 0}</span></td>
-      <td style="text-align:right"><span class="num-cell">${monthConv || 0}</span></td>
+  const tbody=document.getElementById('art-tbody');
+  if(!sorted.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace">尚無文章導流資料</td></tr>`;return;}
+  tbody.innerHTML=sorted.map((r,i)=>{
+    const[,title,domain,wSess,wConv,mSess,mConv,url]=r;
+    const dc=DOMAIN_COLORS[domain]||{bg:'#8D5531',text:'#fff'};
+    return`<tr>
+      <td><a href="${url||'#'}" target="_blank" class="art-title">${title||''}</a></td>
+      <td><span class="domain-tag" style="background:${dc.bg};color:${dc.text};border-color:${dc.bg}">${domain||''}</span></td>
+      <td style="text-align:right"><span class="num-cell hi">${Number(wSess||0).toLocaleString()}</span></td>
+      <td style="text-align:right"><span class="num-cell">${Number(mSess||0).toLocaleString()}</span></td>
+      <td style="text-align:right"><span class="num-cell">${wConv||0}</span></td>
+      <td style="text-align:right"><span class="num-cell">${mConv||0}</span></td>
     </tr>`;
   }).join('');
 }
 
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + tab).classList.add('active');
+/* ── Action Plan (localStorage) ── */
+const ALL_ACTIONS=['q1','q2','q3','s1','s2','s3','s4'];
+function loadPlanState(){
+  const saved=JSON.parse(localStorage.getItem('oringo-seo-plan')||'{}');
+  ALL_ACTIONS.forEach(id=>{
+    if(saved[id]){
+      const el=document.getElementById('ai-'+id);
+      if(el){el.classList.add('done');document.getElementById('cb-'+id).textContent='✓';}
+    }
+  });
+  updateProgress();
+}
+function toggleAction(id,el){
+  el.classList.toggle('done');
+  const saved=JSON.parse(localStorage.getItem('oringo-seo-plan')||'{}');
+  saved[id]=el.classList.contains('done');
+  localStorage.setItem('oringo-seo-plan',JSON.stringify(saved));
+  updateProgress();
+}
+function updateProgress(){
+  const saved=JSON.parse(localStorage.getItem('oringo-seo-plan')||'{}');
+  const done=ALL_ACTIONS.filter(id=>saved[id]).length;
+  const pct=Math.round(done/ALL_ACTIONS.length*100);
+  document.getElementById('plan-bar').style.width=pct+'%';
+  document.getElementById('plan-pct').textContent=pct+'%';
+  document.getElementById('plan-count').textContent=done+' / '+ALL_ACTIONS.length+' 完成';
+  const bar=document.getElementById('plan-bar');
+  bar.style.background=pct>=100?'var(--positive)':pct>=60?'#5ca865':'var(--positive)';
 }
 
+/* ── Tab switch ── */
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+/* ── Clock ── */
 (function tick(){
-  const n = new Date();
-  document.getElementById('clock').textContent = [n.getHours(), n.getMinutes(), n.getSeconds()].map(v => ('0'+v).slice(-2)).join(':');
-  setTimeout(tick, 1000);
+  const n=new Date();
+  document.getElementById('clock').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>('0'+v).slice(-2)).join(':');
+  setTimeout(tick,1000);
 })();
 
 loadData();
