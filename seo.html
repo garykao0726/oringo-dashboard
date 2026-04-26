@@ -151,7 +151,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   <button class="tab-btn active" onclick="switchTab('health',this)">🏥 SEO 健康狀態</button>
   <button class="tab-btn" onclick="switchTab('opp',this)">🎯 關鍵字機會</button>
   <button class="tab-btn" onclick="switchTab('rankings',this)">📊 排名追蹤</button>
-  <button class="tab-btn" onclick="switchTab('articles',this)">📄 文章導流</button>
   <button class="tab-btn" onclick="switchTab('plan',this)">✅ 行動計劃</button>
 </nav>
 
@@ -382,14 +381,12 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     <div id="kw-date" style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace"></div>
   </div>
 
-  <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace;margin-bottom:.75rem;line-height:1.6">
-    在地詞 = 帶有城市意圖的搜尋（如「台北皮鞋」），代表搜尋者有實體到店意願。追蹤各城市能見度，決定哪裡需要補強在地內容。
-  </div>
-  <div class="store-pills" id="store-pills">
+  <div class="store-pills">
     <button class="sp active" onclick="filterKw('全部',this)">全部</button>
     <button class="sp" onclick="filterKw('品牌詞',this)">🏷️ 品牌詞</button>
-    <button class="sp" onclick="filterKw('台北',this)">📍 在地詞・台北</button>
-    <button class="sp" onclick="filterKw('台中',this)">📍 在地詞・台中</button>
+    <button class="sp" onclick="filterKw('在地詞',this)">📍 在地詞</button>
+    <button class="sp" onclick="filterKw('商品詞',this)">👟 商品詞</button>
+    <button class="sp" onclick="filterKw('情境詞',this)">💼 情境詞</button>
   </div>
 
   <div id="ad-alert"></div>
@@ -399,7 +396,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
       <table class="ctbl">
         <thead><tr>
           <th>關鍵字</th>
-          <th>門市分類</th>
+          <th>類型</th>
           <th>搜尋量 / 月</th>
           <th style="text-align:center">目前排名</th>
           <th style="text-align:center">上週排名</th>
@@ -414,45 +411,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 </div>
 
 <!-- ══════════════════════════════════════════
-     Tab 4 · 文章導流（Live from Sheets）
-     ══════════════════════════════════════════ -->
-<div class="tab-panel" id="panel-articles">
-  <div id="mock-banner-art" class="mock-banner" style="display:none">
-    <span>⚠ 目前顯示範例資料</span>
-    <span style="font-weight:normal">文章導流工作表有資料後將自動切換為真實數據</span>
-  </div>
-
-  <div class="sec-hdr">
-    <div class="sec-title">外部文章導流</div>
-    <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace">依週 Sessions 排序・GA4 Referral</div>
-  </div>
-
-  <!-- Summary KPIs -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:1.25rem" id="art-kpis"></div>
-
-  <!-- High traffic / low conversion alert -->
-  <div id="art-alert"></div>
-
-  <div class="card" style="padding:0;overflow:hidden">
-    <div style="overflow-x:auto">
-      <table class="ctbl">
-        <thead><tr>
-          <th>文章標題</th>
-          <th>來源網域</th>
-          <th style="text-align:right">週 Sessions</th>
-          <th style="text-align:right">月 Sessions</th>
-          <th style="text-align:right">週轉換率</th>
-          <th style="text-align:right">週轉換</th>
-          <th style="text-align:right">月轉換</th>
-        </tr></thead>
-        <tbody id="art-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     Tab 5 · 行動計劃（Checklist with persistence）
+     Tab 4 · 行動計劃（Checklist with persistence）
      ══════════════════════════════════════════ -->
 <div class="tab-panel" id="panel-plan">
   <div class="sec-hdr">
@@ -549,50 +508,28 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 const SHEET_ID = '17hTgCpF0mBTHf3RcnDmRFrJMeLBn3nRdTMuG8l58QjY';
 
 /* ── Mock data ── */
-const TAIPEI_STORES = ['松菸','東門','中山'];
+// GAS 欄位：更新時間, 類型, 關鍵字, 搜尋量(月均), 目前排名, 上週排名, 排名變化, 有無競品廣告(Y/N), 競品名稱
+// 類型值：品牌詞 / 在地詞 / 商品詞 / 情境詞
 const MOCK_KEYWORDS = [
-  // 在地詞：台北（GAS 會按門市寫入，前端合併顯示）
-  ['2026/04/21','松菸','台北皮鞋',2400,4,5,1,'N',''],
-  ['2026/04/21','松菸','台北皮鞋推薦',1800,7,9,2,'Y','西班牙皮革坊、Vanger'],
-  ['2026/04/21','松菸','台北手工皮鞋',880,3,3,0,'N',''],
-  ['2026/04/21','東門','台北皮鞋',2400,4,5,1,'N',''],
-  ['2026/04/21','東門','台北皮鞋推薦',1800,7,9,2,'Y','西班牙皮革坊、Vanger'],
-  ['2026/04/21','東門','台北手工皮鞋',880,3,3,0,'Y','ManStyle皮鞋'],
-  ['2026/04/21','中山','台北皮鞋',2400,4,5,1,'N',''],
-  ['2026/04/21','中山','台北皮鞋推薦',1800,7,9,2,'Y','西班牙皮革坊、Vanger'],
-  ['2026/04/21','中山','台北手工皮鞋',880,3,3,0,'N',''],
-  // 在地詞：台中
-  ['2026/04/21','台中','台中皮鞋',1600,2,3,1,'N',''],
-  ['2026/04/21','台中','台中皮鞋推薦',1200,5,6,1,'Y','DAPPER臺灣、Vanger'],
-  ['2026/04/21','台中','台中手工皮鞋',540,1,1,0,'N',''],
-  // 品牌詞
   ['2026/04/21','品牌詞','林果良品',3200,1,1,0,'N',''],
   ['2026/04/21','品牌詞','oringo',2100,1,1,0,'N',''],
   ['2026/04/21','品牌詞','台灣皮鞋品牌',1400,3,4,1,'Y','G.T. Company、Vanger'],
+  ['2026/04/21','在地詞','台北皮鞋',2400,4,5,1,'N',''],
+  ['2026/04/21','在地詞','台北皮鞋推薦',1800,7,9,2,'Y','西班牙皮革坊、Vanger'],
+  ['2026/04/21','在地詞','台北鞋店',960,5,6,1,'N',''],
+  ['2026/04/21','在地詞','台中皮鞋',1600,2,3,1,'N',''],
+  ['2026/04/21','在地詞','台中皮鞋推薦',1200,5,6,1,'Y','DAPPER臺灣、Vanger'],
+  ['2026/04/21','在地詞','台中鞋店',720,3,4,1,'N',''],
+  ['2026/04/21','商品詞','牛津鞋推薦',1900,8,10,2,'N',''],
+  ['2026/04/21','商品詞','德比鞋推薦',1200,12,15,3,'Y','Vanger'],
+  ['2026/04/21','商品詞','樂福鞋推薦',980,14,16,2,'N',''],
+  ['2026/04/21','商品詞','手工皮鞋品牌',1600,5,6,1,'N',''],
+  ['2026/04/21','情境詞','上班鞋推薦',2200,0,0,0,'Y','MTSK、Vanger'],
+  ['2026/04/21','情境詞','面試鞋推薦',1800,0,0,0,'Y','MTSK'],
+  ['2026/04/21','情境詞','皮鞋保養方法',900,0,0,0,'N',''],
 ];
-const MOCK_ARTICLES = [
-  // [時間, 標題, 網域, 週Sessions, 週轉換, 月Sessions, 月轉換, URL]
-  ['2026/04/21','2026 台北必逛！5雙手工皮鞋品牌推薦','manstyle.com',342,12,1280,44,'https://manstyle.com/'],
-  ['2026/04/21','林果良品評測：台灣皮鞋工藝深度報告','gq.com.tw',280,9,1050,35,'https://gq.com.tw/'],
-  ['2026/04/21','2026 台灣男裝品牌年度精選 100 件','storm.mg',265,2,980,7,'https://storm.mg/'],
-  ['2026/04/21','職場穿搭指南：皮鞋品牌完整評比','cheers.com.tw',198,7,780,28,'https://cheers.com.tw/'],
-  ['2026/04/21','生活風格選物：質感配件品牌推薦','lifestyle-tw.com',180,1,660,3,'https://lifestyle-tw.com/'],
-  ['2026/04/21','精品皮鞋入門：從林果良品開始','esquire.com.tw',165,5,620,22,'https://esquire.com.tw/'],
-  ['2026/04/21','紳士鞋選購完全指南 2026','cw.com.tw',98,4,390,17,'https://cw.com.tw/'],
-  ['2026/04/21','台中購物：皮鞋職人工坊特集','taichung-life.tw',74,2,295,8,'https://taichung-life.tw/'],
-];
-const DOMAIN_COLORS = {
-  'manstyle.com':{'bg':'#1a3a5c','text':'#fff'},
-  'gq.com.tw':{'bg':'#222','text':'#fff'},
-  'cheers.com.tw':{'bg':'#005baf','text':'#fff'},
-  'esquire.com.tw':{'bg':'#c80000','text':'#fff'},
-  'storm.mg':{'bg':'#444','text':'#fff'},
-  'cw.com.tw':{'bg':'#2c5f9e','text':'#fff'},
-  'taichung-life.tw':{'bg':'#284234','text':'#fff'},
-  'lifestyle-tw.com':{'bg':'#8D5531','text':'#fff'},
-};
 
-let kwData = [], artData = [], currentFilter = '全部';
+let kwData = [], currentFilter = '全部';
 let _seq = 0;
 
 function loadGviz(sheetName){
@@ -610,7 +547,7 @@ function loadGviz(sheetName){
 }
 
 async function loadData(){
-  let kwMock=false, artMock=false;
+  let kwMock=false;
   try{
     const rows=await loadGviz('SEO關鍵字');
     const f=rows.filter(r=>r[2]);
@@ -618,19 +555,11 @@ async function loadData(){
   }catch(e){kwMock=true;}
   if(kwMock){document.getElementById('mock-banner-kw').style.display='flex';kwData=MOCK_KEYWORDS;}
 
-  try{
-    const rows=await loadGviz('文章導流');
-    const f=rows.filter(r=>r[1]);
-    if(!f.length) artMock=true; else artData=f;
-  }catch(e){artMock=true;}
-  if(artMock){document.getElementById('mock-banner-art').style.display='flex';artData=MOCK_ARTICLES;}
-
-  document.getElementById('data-tag').textContent=(!kwMock&&!artMock)?'LIVE DATA':'部分範例';
+  document.getElementById('data-tag').textContent=kwMock?'範例資料':'LIVE DATA';
   const d=kwData[0]?kwData[0][0]||'':'';
   document.getElementById('kw-date').textContent=d?'更新：'+d:'';
 
   renderKeywords();
-  renderArticles();
   loadPlanState();
 }
 
@@ -641,39 +570,17 @@ function rankClass(r){
   if(r<=10)return'rank-ok';
   return'rank-bad';
 }
-function categoryLabel(store){
-  if(store==='品牌詞')return'品牌詞';
-  if(TAIPEI_STORES.includes(store))return'在地詞・台北';
-  if(store==='台中')return'在地詞・台中';
-  return store;
-}
-function filterByCategory(data, cat){
-  if(cat==='全部') return data;
-  if(cat==='品牌詞') return data.filter(r=>r[1]==='品牌詞');
-  if(cat==='台北') return data.filter(r=>TAIPEI_STORES.includes(r[1]));
-  if(cat==='台中') return data.filter(r=>r[1]==='台中');
-  return data.filter(r=>String(r[1]).includes(cat));
-}
-function dedupeByKeyword(rows){
-  const seen=new Set();
-  return rows.filter(r=>{
-    const k=r[2];
-    if(seen.has(k))return false;
-    seen.add(k);return true;
-  });
-}
 function renderKeywords(){
-  const base=filterByCategory(kwData,currentFilter);
-  const filtered=dedupeByKeyword(base);
-  // Build ad alert: split multi-brand strings and expand
+  const filtered=currentFilter==='全部'
+    ?kwData
+    :kwData.filter(r=>r[1]===currentFilter);
+
   const adRows=filtered.filter(r=>r[7]==='Y'&&r[8]);
   const adAlert=document.getElementById('ad-alert');
   if(adRows.length){
-    // map: brand → [keywords]
     const map={};
     adRows.forEach(r=>{
-      const brands=String(r[8]).split(/[、,，]/);
-      brands.forEach(b=>{
+      String(r[8]).split(/[、,，]/).forEach(b=>{
         b=b.trim();if(!b)return;
         if(!map[b])map[b]=new Set();
         map[b].add(r[2]);
@@ -692,14 +599,16 @@ function renderKeywords(){
   const tbody=document.getElementById('kw-tbody');
   if(!filtered.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace">此分類尚無資料</td></tr>`;return;}
   tbody.innerHTML=filtered.map(r=>{
-    const[,store,kw,vol,cur,prev,delta,hasAd,adBrand]=r;
+    const[,type,kw,vol,cur,prev,delta,hasAd,adBrand]=r;
     const rank=Number(cur)||0,chg=Number(delta)||0,ad=hasAd==='Y';
-    const dHtml=chg>0?`<span class="rank-delta delta-up">↑ +${chg}</span>`:chg<0?`<span class="rank-delta delta-down">↓ ${chg}</span>`:`<span class="rank-delta delta-same">— 持平</span>`;
+    const rankDisplay=rank>0?rank:'未排名';
+    const rankCls=rank>0?rankClass(rank):'rank-bad';
+    const dHtml=rank===0?`<span class="rank-delta delta-same">— 未排名</span>`:chg>0?`<span class="rank-delta delta-up">↑ +${chg}</span>`:chg<0?`<span class="rank-delta delta-down">↓ ${chg}</span>`:`<span class="rank-delta delta-same">— 持平</span>`;
     return`<tr class="${ad?'has-ad':''}">
       <td class="kw-name">${kw||''}</td>
-      <td style="font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace">${categoryLabel(store)}</td>
+      <td><span style="font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace">${type||''}</span></td>
       <td><span class="vol-badge">${vol?Number(vol).toLocaleString():'—'}</span></td>
-      <td style="text-align:center"><span class="rank-num ${rankClass(rank)}">${rank>0?rank:'—'}</span></td>
+      <td style="text-align:center"><span class="rank-num ${rankCls}" style="font-size:${rank>0?'18':'12'}px">${rankDisplay}</span></td>
       <td style="text-align:center;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:12px">${Number(prev)>0?prev:'—'}</td>
       <td style="text-align:center">${dHtml}</td>
       <td><span class="ad-tag ${ad?'yes':'no'}">${ad?'⚠ 有':'✓ 無'}</span></td>
@@ -712,82 +621,6 @@ function filterKw(cat,btn){
   document.querySelectorAll('.sp').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderKeywords();
-}
-
-/* ── Articles ── */
-const CONV_SESS_THRESHOLD=100;   // 週 sessions 以上才計入
-const CONV_RATE_THRESHOLD=2.0;   // 低於此百分比視為低轉換
-function convRate(wSess,wConv){
-  return wSess>0?(Number(wConv)||0)/Number(wSess)*100:0;
-}
-function renderArticles(){
-  const sorted=[...artData].sort((a,b)=>(Number(b[3])||0)-(Number(a[3])||0));
-  const totalWeek=sorted.reduce((s,r)=>s+(Number(r[3])||0),0);
-  const totalMonth=sorted.reduce((s,r)=>s+(Number(r[5])||0),0);
-  const totalConv=sorted.reduce((s,r)=>s+(Number(r[4])||0),0);
-  const avgConvRate=totalWeek>0?(totalConv/totalWeek*100):0;
-
-  // KPI cards
-  const kpis=[
-    {l:'文章總數',v:sorted.length+'篇',c:'var(--green)'},
-    {l:'週導流 Sessions',v:totalWeek.toLocaleString(),c:'var(--rust)'},
-    {l:'月導流 Sessions',v:totalMonth.toLocaleString(),c:'var(--brown)'},
-    {l:'平均週轉換率',v:avgConvRate.toFixed(1)+'%',c:avgConvRate>=2?'var(--positive)':'var(--warn)'},
-  ];
-  document.getElementById('art-kpis').innerHTML=kpis.map(k=>`
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem">
-      <div style="font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">${k.l}</div>
-      <div style="font-size:24px;font-weight:700;font-family:'Space Mono',monospace;color:${k.c}">${k.v}</div>
-    </div>`).join('');
-
-  // High traffic, low conversion alert
-  const lowConv=sorted.filter(r=>{
-    const s=Number(r[3])||0, cr=convRate(r[3],r[4]);
-    return s>=CONV_SESS_THRESHOLD && cr<CONV_RATE_THRESHOLD;
-  });
-  const alertEl=document.getElementById('art-alert');
-  if(lowConv.length){
-    alertEl.innerHTML=`<div style="background:rgba(184,134,11,.07);border:1.5px solid rgba(184,134,11,.3);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem">
-      <div style="font-size:13px;font-weight:700;color:var(--warn);margin-bottom:.75rem;display:flex;align-items:center;gap:8px">
-        ⚠️ 高流量、低轉換文章（${lowConv.length} 篇）
-        <span style="font-size:10px;font-family:'Space Mono',monospace;font-weight:400;color:var(--text-muted)">週 Sessions ≥ ${CONV_SESS_THRESHOLD} 且轉換率 &lt; ${CONV_RATE_THRESHOLD}%</span>
-      </div>
-      <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace;margin-bottom:.75rem;line-height:1.6">
-        這些文章帶來大量訪客，但購買轉換率偏低。可能原因：內容受眾與購買意圖不符、缺乏明確 CTA、或頁面未導向商品頁。建議優先優化或補寫更精準的對應文章。
-      </div>
-      ${lowConv.map(r=>{
-        const cr=convRate(r[3],r[4]);
-        const dc=DOMAIN_COLORS[r[2]]||{bg:'#8D5531',text:'#fff'};
-        return`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(184,134,11,.12)">
-          <span style="font-family:'Noto Sans TC',sans-serif;font-weight:600;font-size:12px;flex:1">${r[1]}</span>
-          <span class="domain-tag" style="background:${dc.bg};color:${dc.text};border-color:${dc.bg};flex-shrink:0">${r[2]}</span>
-          <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted);flex-shrink:0">週 ${Number(r[3]).toLocaleString()} sessions</span>
-          <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--warn);flex-shrink:0">${cr.toFixed(1)}% 轉換</span>
-        </div>`;
-      }).join('')}
-    </div>`;
-  } else {
-    alertEl.innerHTML='';
-  }
-
-  const tbody=document.getElementById('art-tbody');
-  if(!sorted.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);font-family:'Space Mono',monospace">尚無文章導流資料</td></tr>`;return;}
-  tbody.innerHTML=sorted.map(r=>{
-    const[,title,domain,wSess,wConv,mSess,mConv,url]=r;
-    const cr=convRate(wSess,wConv);
-    const isLow=(Number(wSess)>=CONV_SESS_THRESHOLD&&cr<CONV_RATE_THRESHOLD);
-    const dc=DOMAIN_COLORS[domain]||{bg:'#8D5531',text:'#fff'};
-    const crColor=cr>=3?'var(--positive)':cr>=2?'var(--warn)':'var(--negative)';
-    return`<tr style="${isLow?'background:rgba(184,134,11,.04)':''}">
-      <td><a href="${url||'#'}" target="_blank" class="art-title">${title||''}</a>${isLow?'<span style="margin-left:6px;font-size:9px;font-family:Space Mono,monospace;color:var(--warn);background:rgba(184,134,11,.1);border:1px solid rgba(184,134,11,.25);padding:1px 6px;border-radius:3px">低轉換</span>':''}</td>
-      <td><span class="domain-tag" style="background:${dc.bg};color:${dc.text};border-color:${dc.bg}">${domain||''}</span></td>
-      <td style="text-align:right"><span class="num-cell hi">${Number(wSess||0).toLocaleString()}</span></td>
-      <td style="text-align:right"><span class="num-cell">${Number(mSess||0).toLocaleString()}</span></td>
-      <td style="text-align:right"><span class="num-cell" style="color:${crColor};font-size:12px">${cr.toFixed(1)}%</span></td>
-      <td style="text-align:right"><span class="num-cell">${wConv||0}</span></td>
-      <td style="text-align:right"><span class="num-cell">${mConv||0}</span></td>
-    </tr>`;
-  }).join('');
 }
 
 /* ── Action Plan (localStorage) ── */
