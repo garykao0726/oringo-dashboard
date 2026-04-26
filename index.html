@@ -316,6 +316,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     <div class="card-hdr"><span class="card-lbl">各店評價概覽</span><span class="card-badge">Google 商家評分</span></div>
     <div id="gbp-review-overview"></div>
   </div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-hdr"><span class="card-lbl">本週店員行動指標</span><span class="card-badge">每週可改善</span></div>
+    <div id="gbp-actions"></div>
+  </div>
   <div class="g2" style="margin-bottom:1.25rem">
     <div class="card">
       <div class="card-hdr"><span class="card-lbl">各店 8 週曝光趨勢</span><span class="card-badge">搜尋 + 地圖合計</span></div>
@@ -482,14 +486,39 @@ async function loadGbpData(){
     });
     const latestWeek=rows[rows.length-1]?String(rows[rows.length-1][1]||''):'';
     document.getElementById('gbp-period').textContent=(latestWeek||'')+' 真實數據';
-    renderGbpCards(data);renderGbpTrend(data,weekLabels);renderGbpRank(data);renderGbpReviews(data);
+    renderGbpCards(data);renderGbpTrend(data,weekLabels);renderGbpRank(data);renderGbpReviews(data);renderGbpActions(data);
   }catch(e){console.error('loadGbpData',e);renderGbpWithMock(true);}
 }
 function gbpStars(r){const f=Math.floor(r),h=r-f>=0.5?1:0;return'<span style="color:#d4a72c">'+'★'.repeat(f)+(h?'★':'')+'</span>'+'<span style="color:var(--border2)">'+'☆'.repeat(5-f-h)+'</span>';}
 function renderGbpWithMock(showBanner){
   if(showBanner)document.getElementById('gbp-mock-banner').style.display='flex';
   document.getElementById('gbp-period').textContent='W09 – W16（模擬資料）';
-  renderGbpCards(MOCK_GBP);renderGbpTrend(MOCK_GBP);renderGbpRank(MOCK_GBP);renderGbpReviews(MOCK_GBP);
+  renderGbpCards(MOCK_GBP);renderGbpTrend(MOCK_GBP);renderGbpRank(MOCK_GBP);renderGbpReviews(MOCK_GBP);renderGbpActions(MOCK_GBP);
+}
+function renderGbpActions(data){
+  const el=document.getElementById('gbp-actions');
+  if(!el)return;
+  const actions=[
+    {key:'reviews',label:'回覆或累積評價',hint:'本週新增 ≥3 則為綠燈',icon:'⭐',get:d=>d.weeklyReviews||0,green:v=>v>=3,yellow:v=>v>=1},
+    {key:'photos',label:'上傳門市照片',hint:'本週新增 ≥2 張為綠燈',icon:'📷',get:d=>d.weeklyPhotos||0,green:v=>v>=2,yellow:v=>v>=1},
+    {key:'post',label:'更新 Google 貼文',hint:'本週已發布貼文為綠燈',icon:'📝',get:d=>d.updateRate||0,green:v=>v>=100,yellow:v=>v>0},
+  ];
+  const rows=data.map(d=>{
+    const cells=actions.map(a=>{
+      const v=a.get(d);
+      const color=a.green(v)?'#2d7a45':a.yellow(v)?'#b87a00':'#b03020';
+      const bg=a.green(v)?'#e6f4eb':a.yellow(v)?'#fdf6e0':'#fcecea';
+      const lamp=a.green(v)?'🟢':a.yellow(v)?'🟡':'🔴';
+      const display=a.key==='post'?(v>=100?'已發布':v>0?`${v}%`:'未發布'):`${v}`;
+      return`<td style="text-align:center;padding:6px 10px"><span style="background:${bg};color:${color};border-radius:6px;padding:3px 10px;font-size:.82rem;font-weight:600">${lamp} ${display}</span></td>`;
+    }).join('');
+    return`<tr><td style="padding:6px 12px;font-size:.85rem;color:var(--txt1);font-weight:600">${d.store}</td>${cells}</tr>`;
+  }).join('');
+  const heads=actions.map(a=>`<th style="text-align:center;padding:6px 10px;font-size:.78rem;color:var(--txt2);font-weight:500">${a.icon} ${a.label}<br><span style="font-size:.72rem;opacity:.7">${a.hint}</span></th>`).join('');
+  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+    <thead><tr><th style="padding:6px 12px;text-align:left;font-size:.78rem;color:var(--txt2)">門市</th>${heads}</tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
 }
 function renderGbpCards(data){
   document.getElementById('gbp-cards').innerHTML=data.map((d,i)=>{
