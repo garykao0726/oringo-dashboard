@@ -450,9 +450,40 @@ async function loadGbpData(){
   if(gbpLoaded)return;gbpLoaded=true;
   try{
     const rows=await loadGviz('GBP數據');
-    if(!rows||rows.length<2){renderGbpWithMock(true);return;}
-    renderGbpWithMock(false);
-  }catch(e){renderGbpWithMock(true);}
+    if(!rows||rows.length<1){renderGbpWithMock(true);return;}
+    // Group rows by store name (col 2)
+    const storeMap={};
+    rows.forEach(r=>{
+      const name=String(r[2]||'').trim();
+      if(!name)return;
+      if(!storeMap[name])storeMap[name]=[];
+      storeMap[name].push({
+        week:String(r[1]||''),
+        search:Number(r[3])||0, map:Number(r[4])||0,
+        nav:Number(r[5])||0, phone:Number(r[6])||0, web:Number(r[7])||0,
+        rating:Number(r[8])||0, reviews:Number(r[9])||0, weeklyReviews:Number(r[10])||0,
+        photos:Number(r[11])||0, weeklyPhotos:Number(r[12])||0, updateRate:Number(r[13])||0,
+      });
+    });
+    const hasData=GBP_STORES.some(n=>storeMap[n]&&storeMap[n].length>0);
+    if(!hasData){renderGbpWithMock(true);return;}
+    // Week labels from first store's history (last 8)
+    const ref=storeMap[GBP_STORES[0]]||[];
+    const last8ref=ref.slice(-8);
+    const weekLabels=last8ref.map(e=>e.week);
+    while(weekLabels.length<8)weekLabels.unshift('—');
+    // Build per-store data
+    const data=GBP_STORES.map(name=>{
+      const entries=storeMap[name]||[];
+      const latest=entries[entries.length-1]||{};
+      const last8=entries.slice(-8);
+      while(last8.length<8)last8.unshift({search:0,map:0});
+      return{store:name,...latest,wTrend:last8.map(e=>e.search||0),mTrend:last8.map(e=>e.map||0)};
+    });
+    const latestWeek=rows[rows.length-1]?String(rows[rows.length-1][1]||''):'';
+    document.getElementById('gbp-period').textContent=(latestWeek||'')+' 真實數據';
+    renderGbpCards(data);renderGbpTrend(data,weekLabels);renderGbpRank(data);renderGbpReviews(data);
+  }catch(e){console.error('loadGbpData',e);renderGbpWithMock(true);}
 }
 function gbpStars(r){const f=Math.floor(r),h=r-f>=0.5?1:0;return'<span style="color:#d4a72c">'+'★'.repeat(f)+(h?'★':'')+'</span>'+'<span style="color:var(--border2)">'+'☆'.repeat(5-f-h)+'</span>';}
 function renderGbpWithMock(showBanner){
@@ -493,10 +524,11 @@ function renderGbpCards(data){
     </div>`;
   }).join('');
 }
-function renderGbpTrend(data){
+function renderGbpTrend(data,labels){
   const el=document.getElementById('gbp-trend-chart');
   if(gbpTrendChart){gbpTrendChart.destroy();gbpTrendChart=null;}
-  gbpTrendChart=new Chart(el,{type:'line',data:{labels:GBP_WEEKS,datasets:data.map((d,i)=>({label:d.store,data:d.wTrend.map((s,j)=>s+(d.mTrend[j]||0)),borderColor:GBP_COL[i],backgroundColor:GBP_COL[i]+'18',borderWidth:2,pointRadius:3,pointBackgroundColor:GBP_COL[i],fill:false,tension:.4}))},options:cOpts()});
+  const weekLabels=labels||GBP_WEEKS;
+  gbpTrendChart=new Chart(el,{type:'line',data:{labels:weekLabels,datasets:data.map((d,i)=>({label:d.store,data:d.wTrend.map((s,j)=>s+(d.mTrend[j]||0)),borderColor:GBP_COL[i],backgroundColor:GBP_COL[i]+'18',borderWidth:2,pointRadius:3,pointBackgroundColor:GBP_COL[i],fill:false,tension:.4}))},options:cOpts()});
   document.getElementById('gbp-trend-legend').innerHTML=data.map((d,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${GBP_COL[i]}"></div>${d.store}</div>`).join('');
 }
 function renderGbpReviews(data){
