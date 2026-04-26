@@ -312,6 +312,10 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     <div class="sec-date" id="gbp-period">—</div>
   </div>
   <div class="g-gbp" id="gbp-cards"></div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-hdr"><span class="card-lbl">各店評價概覽</span><span class="card-badge">Google 商家評分</span></div>
+    <div id="gbp-review-overview"></div>
+  </div>
   <div class="g2" style="margin-bottom:1.25rem">
     <div class="card">
       <div class="card-hdr"><span class="card-lbl">各店 8 週曝光趨勢</span><span class="card-badge">搜尋 + 地圖合計</span></div>
@@ -436,10 +440,10 @@ const GBP_EMO=['🌿','🚪','🏙️','🏔️'];
 const GBP_COL=['#284234','#5a8a6e','#A54A1A','#8D5531'];
 const GBP_WEEKS=['W09','W10','W11','W12','W13','W14','W15','W16'];
 const MOCK_GBP=[
-  {store:'台北松菸店',search:4820,map:2190,nav:312,phone:85,web:203,wTrend:[3800,3950,4100,4250,4400,4600,4750,4820],mTrend:[1800,1890,1950,2020,2100,2150,2180,2190]},
-  {store:'台北東門店',search:3650,map:1830,nav:228,phone:72,web:165,wTrend:[2900,3000,3100,3200,3300,3450,3580,3650],mTrend:[1400,1450,1520,1580,1650,1720,1780,1830]},
-  {store:'台北中山店',search:5120,map:2480,nav:356,phone:98,web:241,wTrend:[4100,4250,4450,4600,4750,4900,5020,5120],mTrend:[1950,2050,2150,2220,2300,2380,2430,2480]},
-  {store:'台中園道店',search:3280,map:1560,nav:195,phone:61,web:142,wTrend:[2600,2680,2780,2900,3000,3100,3200,3280],mTrend:[1200,1250,1320,1380,1430,1490,1530,1560]}
+  {store:'台北松菸店',search:4820,map:2190,nav:312,phone:85,web:203,rating:4.8,reviews:312,weeklyReviews:3,wTrend:[3800,3950,4100,4250,4400,4600,4750,4820],mTrend:[1800,1890,1950,2020,2100,2150,2180,2190]},
+  {store:'台北東門店',search:3650,map:1830,nav:228,phone:72,web:165,rating:4.7,reviews:248,weeklyReviews:2,wTrend:[2900,3000,3100,3200,3300,3450,3580,3650],mTrend:[1400,1450,1520,1580,1650,1720,1780,1830]},
+  {store:'台北中山店',search:5120,map:2480,nav:356,phone:98,web:241,rating:4.9,reviews:425,weeklyReviews:5,wTrend:[4100,4250,4450,4600,4750,4900,5020,5120],mTrend:[1950,2050,2150,2220,2300,2380,2430,2480]},
+  {store:'台中園道店',search:3280,map:1560,nav:195,phone:61,web:142,rating:4.8,reviews:196,weeklyReviews:2,wTrend:[2600,2680,2780,2900,3000,3100,3200,3280],mTrend:[1200,1250,1320,1380,1430,1490,1530,1560]}
 ];
 let gbpLoaded=false,gbpTrendChart=null;
 async function loadGbpData(){
@@ -450,10 +454,11 @@ async function loadGbpData(){
     renderGbpWithMock(false);
   }catch(e){renderGbpWithMock(true);}
 }
+function gbpStars(r){const f=Math.floor(r),h=r-f>=0.5?1:0;return'<span style="color:#d4a72c">'+'★'.repeat(f)+(h?'★':'')+'</span>'+'<span style="color:var(--border2)">'+'☆'.repeat(5-f-h)+'</span>';}
 function renderGbpWithMock(showBanner){
   if(showBanner)document.getElementById('gbp-mock-banner').style.display='flex';
   document.getElementById('gbp-period').textContent='W09 – W16（模擬資料）';
-  renderGbpCards(MOCK_GBP);renderGbpTrend(MOCK_GBP);renderGbpRank(MOCK_GBP);
+  renderGbpCards(MOCK_GBP);renderGbpTrend(MOCK_GBP);renderGbpRank(MOCK_GBP);renderGbpReviews(MOCK_GBP);
 }
 function renderGbpCards(data){
   document.getElementById('gbp-cards').innerHTML=data.map((d,i)=>{
@@ -469,6 +474,20 @@ function renderGbpCards(data){
       </div>
       <div class="sc-ratio-label"><span>搜尋 ${sPct}%</span><span>地圖 ${mapPct}%</span></div>
       <div class="sc-ratio-bar"><div style="flex:${sPct};background:${GBP_COL[i]}"></div><div class="ratio-map" style="flex:${mapPct}"></div></div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="sc-kpi-l" style="margin-bottom:2px">評價評分</div>
+          <div style="display:flex;align-items:baseline;gap:5px">
+            <span style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--rust)">${d.rating}</span>
+            <span style="font-size:13px;line-height:1">${gbpStars(d.rating)}</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="sc-kpi-l" style="margin-bottom:2px">累積評價數</div>
+          <div style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--text)">${d.reviews} 則</div>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--positive);margin-top:1px">+${d.weeklyReviews} 本週</div>
+        </div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -477,6 +496,23 @@ function renderGbpTrend(data){
   if(gbpTrendChart){gbpTrendChart.destroy();gbpTrendChart=null;}
   gbpTrendChart=new Chart(el,{type:'line',data:{labels:GBP_WEEKS,datasets:data.map((d,i)=>({label:d.store,data:d.wTrend.map((s,j)=>s+(d.mTrend[j]||0)),borderColor:GBP_COL[i],backgroundColor:GBP_COL[i]+'18',borderWidth:2,pointRadius:3,pointBackgroundColor:GBP_COL[i],fill:false,tension:.4}))},options:cOpts()});
   document.getElementById('gbp-trend-legend').innerHTML=data.map((d,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${GBP_COL[i]}"></div>${d.store}</div>`).join('');
+}
+function renderGbpReviews(data){
+  const maxR=Math.max(...data.map(d=>d.reviews));
+  document.getElementById('gbp-review-overview').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem">${
+    data.map((d,i)=>{
+      const pct=Math.round(d.reviews/maxR*100);
+      const shortName=d.store.replace('台北','').replace('台中園道','台中');
+      return`<div style="text-align:center;padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;border-top:3px solid ${GBP_COL[i]}">
+        <div style="font-size:12px;font-weight:700;color:var(--text-sub);margin-bottom:10px">${GBP_EMO[i]} ${shortName}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:var(--rust);line-height:1">${d.rating}</div>
+        <div style="font-size:15px;margin:5px 0 2px">${gbpStars(d.rating)}</div>
+        <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--text-muted)">${d.reviews} 則評價</div>
+        <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--positive);margin-top:3px">+${d.weeklyReviews} 本週新增</div>
+        <div class="prog" style="margin-top:10px"><div class="prog-bar" style="width:${pct}%;background:${GBP_COL[i]}"></div></div>
+      </div>`;
+    }).join('')
+  }</div>`;
 }
 function renderGbpRank(data){
   const metrics=[{key:'nav',label:'導航請求'},{key:'phone',label:'電話點擊'},{key:'web',label:'網站點擊'}];
