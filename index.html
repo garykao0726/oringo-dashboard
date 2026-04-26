@@ -176,7 +176,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   <button class="tab" onclick="switchTab('monthly',this)">月度達成</button>
   <button class="tab" onclick="switchTab('annual',this)">年度總覽</button>
   <button class="tab" onclick="switchTab('gbp',this)">📍 GBP 門市流量</button>
-  <button class="tab" onclick="switchTab('seo',this)">📈 SEO 分析</button>
 </nav>
 <div class="container">
 
@@ -346,26 +345,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 
 </div>
 
-<div class="tab-panel" id="panel-seo">
-  <div class="sec-hdr">
-    <div class="sec-title">AI SEO 可見度分析</div>
-    <div class="sec-date" id="seo-period">—</div>
-  </div>
-  <div id="seo-pending" style="display:none;background:#fdf6e0;border:1px solid #e8c84a;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.84rem;color:#8a6200">
-    ⏳ 等待 SEO GAS 首次執行後自動顯示資料。API credits 充值後跑一次 <code>testNow()</code> 即可。
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:1rem;margin-bottom:1.25rem" id="seo-scores"></div>
-  <div class="g2" style="margin-bottom:1.25rem">
-    <div class="card">
-      <div class="card-hdr"><span class="card-lbl">本週急需處理</span><span class="card-badge">依難度排序</span></div>
-      <div id="seo-actions"></div>
-    </div>
-    <div class="card">
-      <div class="card-hdr"><span class="card-lbl">競品 AI 可見度比較</span><span class="card-badge">最新分析</span></div>
-      <div id="seo-competitors" style="padding:.5rem 0"></div>
-    </div>
-  </div>
-</div>
 
 <!-- 延伸分析入口 -->
 <div style="max-width:1400px;margin:0 auto;padding:0 2rem 1.75rem">
@@ -470,106 +449,8 @@ function renderYoyChart(){const lbs=['1','2','3','4','5','6','7','8','9','10','1
 function renderSdGrid(){const d=annualYr===2026?D26:D25,opp=annualYr===2026?D25:D26;document.getElementById('sd-grid').innerHTML=STORES.map((s,i)=>`<div class="card"><div class="card-hdr"><span class="card-lbl" style="color:${S_COL[i]}">${S_EMO[i]} ${s}</span><span class="card-badge" style="color:${S_COL[i]};border-color:${S_COL[i]}33">${(getTgt(s,0)>0?((d[s]||[]).reduce((a,b)=>a+b,0)/getTgt(s,0)*100).toFixed(1):0)}%</span></div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:10px">NT$${fw((d[s]||[]).reduce((a,b)=>a+b,0))}萬 / 目標 ${fw(getTgt(s,0))}萬</div><div style="position:relative;height:130px"><canvas id="sc${i}"></canvas></div></div>`).join('');setTimeout(()=>{STORES.forEach((s,i)=>{const c=document.getElementById('sc'+i);if(!c)return;if(CH['sc'+i])CH['sc'+i].destroy();const d2=annualYr===2026?D26:D25,d3=annualYr===2026?D25:D26;CH['sc'+i]=new Chart(c,{data:{labels:['1','2','3','4','5','6','7','8','9','10','11','12'].map(m=>m+'月'),datasets:[{type:'bar',label:String(annualYr),data:d2[s],backgroundColor:S_COL[i]+'30',borderColor:S_COL[i],borderWidth:1.5,borderRadius:3},{type:'bar',label:String(annualYr===2026?2025:2024),data:d3[s],backgroundColor:'rgba(226,206,185,.4)',borderColor:'#CFA294',borderWidth:1,borderRadius:3},{type:'line',label:'目標',data:TARGETS[s],borderColor:'#A54A1A55',borderWidth:1.5,pointRadius:0,fill:false,borderDash:[4,4]}]},options:{...cOpts(),scales:{x:{grid:{display:false},ticks:{color:'#b09a88',font:{family:'Space Mono',size:9}}},y:{grid:{color:'rgba(40,66,52,.04)'},ticks:{color:'#b09a88',font:{family:'Space Mono',size:9}}}}}});});},100);}
 function renderYoyTable(){const lbs=['1','2','3','4','5','6','7','8','9','10','11','12'];document.getElementById('yoy-tbl').innerHTML=`<thead><tr><th>月份</th>${STORES4.map((s,i)=>`<th style="color:${S_COL[i]}">${s} 2025</th><th style="color:${S_COL[i]}">2026</th><th>YoY</th>`).join('')}</tr></thead><tbody>`+lbs.map((_,mi)=>`<tr><td style="color:var(--text-muted)">${mi+1}月</td>${STORES4.map(s=>{const a=D26[s][mi],b=D25[s][mi];const yoy=b>0?parseFloat(((a-b)/b*100).toFixed(1)):null;return`<td style="color:var(--text-muted)">${b||'—'}</td><td style="font-weight:700">${a||'—'}</td><td class="${yoy!==null?(yoy>=0?'tp':'tn'):''}">${yoy!==null?(yoy>=0?'▲ +':'▼ ')+Math.abs(yoy)+'%':'—'}</td>`;}).join('')}</tr>`).join('')+'</tbody>';}
 function selectAnnualYear(y,btn){annualYr=y;document.querySelectorAll('.yr-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAnnual();}
-function switchTab(tab,btn){document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));document.getElementById('panel-'+tab).classList.add('active');if(tab==='monthly')renderMonthly();if(tab==='annual')renderAnnual();if(tab==='gbp')loadGbpData();if(tab==='seo')loadSeoData();}
-let seoLoaded=false;
-function seoClr(s){return s>=80?'#2d7a45':s>=60?'#b87a00':'#b03020';}
-function seoBg(s){return s>=80?'#e6f4eb':s>=60?'#fdf6e0':'#fcecea';}
-async function loadSeoData(){
-  if(seoLoaded)return;seoLoaded=true;
-  try{
-    const rows=await loadGviz('SEO數據');
-    if(!rows||rows.length<1){showSeoPending();return;}
-    // Build latest entry per page
-    const pageMap={};
-    rows.forEach(r=>{
-      const label=String(r[3]||'').trim();
-      const date=String(r[1]||'').trim();
-      if(!label||!date)return;
-      if(!pageMap[label]||date>pageMap[label].date){
-        const f=i=>({title:String(r[6+i*4]||''),problem:String(r[7+i*4]||''),steps:String(r[8+i*4]||''),effort:String(r[9+i*4]||'')});
-        pageMap[label]={label,date,type:String(r[2]||''),score:Number(r[4])||0,summary:String(r[5]||''),fixes:[0,1,2].map(f).filter(x=>x.title)};
-      }
-    });
-    // Trend: compare last two dates per label
-    const histMap={};
-    rows.forEach(r=>{const l=String(r[3]||'').trim(),d=String(r[1]||'').trim(),s=Number(r[4])||0;if(!l||!d)return;if(!histMap[l])histMap[l]=[];histMap[l].push({d,s});});
-    Object.keys(histMap).forEach(l=>{
-      histMap[l].sort((a,b)=>a.d>b.d?1:-1);
-      const arr=histMap[l];
-      if(arr.length>=2&&pageMap[l])pageMap[l].trend=arr[arr.length-1].s-arr[arr.length-2].s;
-    });
-    const all=Object.values(pageMap);
-    const own=all.filter(p=>p.type==='自家');
-    const comp=all.filter(p=>p.type==='競品');
-    if(!own.length){showSeoPending();return;}
-    const latest=all.reduce((a,b)=>a.date>b.date?a:b,all[0]);
-    document.getElementById('seo-period').textContent='更新 '+latest.date;
-    renderSeoScores(own);renderSeoActions(own);renderSeoCompetitors(own,comp);
-  }catch(e){console.error('loadSeoData',e);showSeoPending();}
-}
-function showSeoPending(){
-  document.getElementById('seo-pending').style.display='block';
-  document.getElementById('seo-scores').innerHTML='';
-  document.getElementById('seo-actions').innerHTML='<div style="padding:1rem;color:var(--txt2);font-size:.84rem">等待資料</div>';
-  document.getElementById('seo-competitors').innerHTML='<div style="padding:1rem;color:var(--txt2);font-size:.84rem">等待資料</div>';
-}
-function renderSeoScores(own){
-  document.getElementById('seo-scores').innerHTML=own.map(p=>{
-    const clr=seoClr(p.score),bg=seoBg(p.score);
-    const trendHtml=p.trend!=null?(p.trend>0?`<span style="color:#2d7a45">↑+${p.trend}</span>`:p.trend<0?`<span style="color:#b03020">↓${p.trend}</span>`:`<span style="color:#888">持平</span>`):`<span style="color:#888">首次</span>`;
-    const topFix=p.fixes[0]?p.fixes[0].title:'—';
-    return`<div class="card" style="padding:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
-        <span style="font-size:.82rem;font-weight:700;color:var(--txt1)">${p.label}</span>
-        <span style="font-size:.72rem">${trendHtml}</span>
-      </div>
-      <div style="font-size:2rem;font-weight:700;color:${clr};font-family:'Space Mono',monospace;line-height:1">${p.score}</div>
-      <div style="font-size:.7rem;color:var(--txt2);margin:.2rem 0 .4rem">/100 AI 可見度</div>
-      <div style="font-size:.76rem;color:var(--txt1);border-top:1px solid var(--border1);padding-top:.4rem;margin-bottom:.3rem">${p.summary}</div>
-      <div style="font-size:.74rem;color:var(--rust);font-weight:600">⚡ ${topFix}</div>
-    </div>`;
-  }).join('');
-}
-function renderSeoActions(own){
-  const el=document.getElementById('seo-actions');
-  const all=[];own.forEach(p=>(p.fixes||[]).forEach(f=>all.push({...f,pageLabel:p.label,pageScore:p.score})));
-  const ord={'低':0,'中':1,'高':2};
-  all.sort((a,b)=>(ord[a.effort]||3)-(ord[b.effort]||3)||a.pageScore-b.pageScore);
-  if(!all.length){el.innerHTML='<div style="padding:1rem;color:var(--txt2);font-size:.84rem">暫無資料</div>';return;}
-  const rows=all.map((f,i)=>{
-    const ec=f.effort==='低'?'#2d7a45':f.effort==='中'?'#b87a00':'#b03020';
-    const eb=f.effort==='低'?'#e6f4eb':f.effort==='中'?'#fdf6e0':'#fcecea';
-    return`<tr style="border-top:1px solid var(--border1)">
-      <td style="padding:7px 8px;font-size:.78rem;color:var(--txt2)">${i+1}</td>
-      <td style="padding:7px 8px"><span style="background:${eb};color:${ec};border-radius:4px;padding:2px 7px;font-size:.75rem;font-weight:600">${f.effort||'—'}</span></td>
-      <td style="padding:7px 8px;font-size:.78rem;color:var(--green);font-weight:600">${f.pageLabel}</td>
-      <td style="padding:7px 8px;font-size:.78rem;font-weight:600;color:var(--txt1)">${f.title}</td>
-      <td style="padding:7px 8px;font-size:.75rem;color:var(--txt2)">${f.problem}</td>
-    </tr>`;
-  }).join('');
-  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
-    <thead><tr><th style="padding:7px 8px;font-size:.74rem;color:var(--txt2);text-align:left">#</th><th style="padding:7px 8px;font-size:.74rem;color:var(--txt2);text-align:left">難度</th><th style="padding:7px 8px;font-size:.74rem;color:var(--txt2);text-align:left">頁面</th><th style="padding:7px 8px;font-size:.74rem;color:var(--txt2);text-align:left">問題</th><th style="padding:7px 8px;font-size:.74rem;color:var(--txt2);text-align:left">說明</th></tr></thead>
-    <tbody>${rows}</tbody></table></div>`;
-}
-function renderSeoCompetitors(own,comp){
-  const el=document.getElementById('seo-competitors');
-  const ownAvg=own.length?Math.round(own.reduce((s,p)=>s+p.score,0)/own.length):0;
-  const all=[{label:'ORINGO（自家）',score:ownAvg,isOwn:true}].concat(comp.map(c=>({label:c.label,score:c.score,isOwn:false})));
-  all.sort((a,b)=>b.score-a.score);
-  const max=all[0]?.score||100;
-  el.innerHTML=all.map(b=>{
-    const clr=seoClr(b.score);
-    const pct=Math.round(b.score/max*100);
-    return`<div style="margin-bottom:.85rem;padding:0 .25rem">
-      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-        <span style="font-size:.82rem;font-weight:${b.isOwn?700:500};color:${b.isOwn?'var(--green)':'var(--txt1)'}">${b.label}</span>
-        <span style="font-size:.82rem;font-weight:700;color:${clr};font-family:'Space Mono',monospace">${b.score}</span>
-      </div>
-      <div style="background:var(--border1);border-radius:4px;height:7px">
-        <div style="background:${clr};width:${pct}%;height:7px;border-radius:4px"></div>
-      </div></div>`;
-  }).join('');
-}
+function switchTab(tab,btn){document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));document.getElementById('panel-'+tab).classList.add('active');if(tab==='monthly')renderMonthly();if(tab==='annual')renderAnnual();if(tab==='gbp')loadGbpData();}
+
 const GBP_STORES=['台北松菸店','台北東門店','台北中山店','台中園道店'];
 const GBP_EMO=['🌿','🚪','🏙️','🏔️'];
 const GBP_COL=['#284234','#5a8a6e','#A54A1A','#8D5531'];
