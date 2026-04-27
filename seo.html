@@ -144,6 +144,15 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   </div>
   <div class="kpi-bar" id="seo-kpi"></div>
 
+  <!-- 四維度 -->
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="card-hdr">
+      <span class="card-lbl">評分維度分析</span>
+      <span class="card-badge">A基礎40 · B內容30 · C結構20 · D AI能見度10</span>
+    </div>
+    <div id="seo-dims" style="display:flex;gap:1.5rem;flex-wrap:wrap"></div>
+  </div>
+
   <!-- 本週必做 -->
   <div class="urgent-banner" id="seo-urgent" style="display:none">
     <div class="urgent-title">🚨 本週必做修改（依修改難度排序）</div>
@@ -220,8 +229,11 @@ async function loadSeoData(){
       const label=String(r[3]||'').trim(),date=String(r[1]||'').trim();
       if(!label||!date)return;
       if(!pageMap[label]||date>=pageMap[label].date){
-        const f=i=>({title:String(r[6+i*4]||''),problem:String(r[7+i*4]||''),steps:String(r[8+i*4]||''),effort:String(r[9+i*4]||'')});
-        pageMap[label]={label,date,type:String(r[2]||''),score:Number(r[4])||0,summary:String(r[5]||''),fixes:[0,1,2].map(f).filter(x=>x.title)};
+        const f=i=>({title:String(r[12+i*5]||''),problem:String(r[13+i*5]||''),steps:String(r[14+i*5]||''),effort:String(r[15+i*5]||''),category:String(r[16+i*5]||'')});
+        pageMap[label]={label,date,type:String(r[2]||''),score:Number(r[4])||0,
+          scores:{seo_basic:Number(r[6])||0,content:Number(r[7])||0,schema:Number(r[8])||0,ai_visibility:Number(r[9])||0},
+          summary:String(r[5]||''),ai_note:String(r[10]||''),opportunities:String(r[11]||''),
+          fixes:[0,1,2,3,4].map(f).filter(x=>x.title)};
       }
     });
 
@@ -264,9 +276,12 @@ function renderKpi(own,comp){
   const avgClr=seoClr(avg);
   const critical=own.filter(p=>p.score<60).length;
   const improved=own.filter(p=>p.trend!=null&&p.trend>0).length;
-  const ownAvg=avg;
   const compAvg=comp.length?Math.round(comp.reduce((s,p)=>s+p.score,0)/comp.length):0;
-  const vsComp=compAvg>0?ownAvg-compAvg:null;
+  const vsComp=compAvg>0?avg-compAvg:null;
+  const avgA=own.length?Math.round(own.reduce((s,p)=>s+(p.scores.seo_basic||0),0)/own.length):0;
+  const avgB=own.length?Math.round(own.reduce((s,p)=>s+(p.scores.content||0),0)/own.length):0;
+  const avgC=own.length?Math.round(own.reduce((s,p)=>s+(p.scores.schema||0),0)/own.length):0;
+  const avgD=own.length?Math.round(own.reduce((s,p)=>s+(p.scores.ai_visibility||0),0)/own.length):0;
 
   document.getElementById('seo-kpi').innerHTML=`
     <div class="kc" style="--kc-color:${avgClr}">
@@ -289,6 +304,25 @@ function renderKpi(own,comp){
       <div class="kc-v" style="color:${vsComp!=null?(vsComp>=0?'var(--positive)':'var(--rust)'):'var(--text-muted)'}">${vsComp!=null?(vsComp>=0?'+':'')+vsComp:'—'}</div>
       <div class="kc-d"><span class="kc-vs">我們 ${avg} | 競品 ${compAvg||'—'}</span></div>
     </div>`;
+
+  // 四維度分析條
+  const dims=[
+    {label:'A. 基礎 SEO',val:avgA,max:40},
+    {label:'B. 內容品質',val:avgB,max:30},
+    {label:'C. 結構化資料',val:avgC,max:20},
+    {label:'D. AI 收錄潛力',val:avgD,max:10},
+  ];
+  document.getElementById('seo-dims').innerHTML=dims.map(d=>{
+    const pct=Math.round(d.val/d.max*100);
+    const clr=pct>=80?'var(--positive)':pct>=60?'#b87a00':'var(--rust)';
+    return`<div style="flex:1;min-width:160px">
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:4px">
+        <span style="color:var(--text-sub);font-weight:600">${d.label}</span>
+        <span style="font-family:'Space Mono',monospace;font-weight:700;color:${clr}">${d.val}<span style="font-weight:400;color:var(--text-muted)">/${d.max}</span></span>
+      </div>
+      <div class="prog"><div class="prog-bar" style="width:${pct}%;background:${clr}"></div></div>
+    </div>`;
+  }).join('');
 }
 
 function renderUrgent(own){
@@ -335,8 +369,16 @@ function renderScores(own){
       <div class="sc-score" style="color:${clr}">${p.score}</div>
       <div class="sc-sub">/100 AI 可見度分數</div>
       <div class="sc-bar"><div class="sc-bar-fill" style="width:${p.score}%;background:${clr}"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:.5rem">
+        ${[['A',p.scores.seo_basic,40],['B',p.scores.content,30],['C',p.scores.schema,20],['D',p.scores.ai_visibility,10]].map(([k,v,mx])=>{
+          const pc=Math.round((v||0)/mx*100),lc=pc>=80?'var(--positive)':pc>=60?'#b87a00':'var(--rust)';
+          return`<div style="font-size:.68rem;font-family:'Space Mono',monospace"><span style="color:var(--text-muted)">${k} </span><span style="color:${lc};font-weight:700">${v||0}/${mx}</span></div>`;
+        }).join('')}
+      </div>
       <div class="sc-summary">${p.summary}</div>
-      ${p.fixes[0]?`<div class="sc-fix">⚡ ${p.fixes[0].title}</div>`:''}
+      ${p.ai_note?`<div style="font-size:.72rem;color:var(--brown);margin:.3rem 0;line-height:1.4">🤖 ${p.ai_note}</div>`:''}
+      ${p.opportunities?`<div style="font-size:.7rem;color:var(--positive);font-weight:600">💡 ${p.opportunities}</div>`:''}
+      ${p.fixes[0]?`<div class="sc-fix" style="margin-top:.3rem">⚡ ${p.fixes[0].title}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -347,13 +389,15 @@ function renderActions(own){
   const ord={'低':0,'中':1,'高':2};
   all.sort((a,b)=>(ord[a.effort]||3)-(ord[b.effort]||3)||a.pageScore-b.pageScore);
   if(!all.length){el.innerHTML='<div style="padding:1rem;color:var(--text-muted);font-size:.84rem">暫無資料</div>';return;}
+  const catLabel={'A':'基礎SEO','B':'內容','C':'Schema','D':'AI能見度'};
   el.innerHTML=`<div style="overflow-x:auto"><table class="prog-tbl">
     <thead><tr>
-      <th>#</th><th>難度</th><th>頁面</th><th>修改項目</th><th>問題說明</th>
+      <th>#</th><th>難度</th><th>類別</th><th>頁面</th><th>修改項目</th><th>問題說明</th>
     </tr></thead>
     <tbody>${all.map((f,i)=>`<tr>
       <td style="font-family:'Space Mono',monospace;color:var(--text-muted);font-size:.78rem">${i+1}</td>
       <td>${effortPill(f.effort)}</td>
+      <td style="font-size:.72rem;font-family:'Space Mono',monospace;color:var(--brown);white-space:nowrap">${f.category?catLabel[f.category]||f.category:''}</td>
       <td style="font-size:.78rem;font-weight:700;color:var(--green);white-space:nowrap">${f.pageLabel}</td>
       <td style="font-size:.78rem;font-weight:600">${f.title}</td>
       <td style="font-size:.75rem;color:var(--text-muted);line-height:1.5">${f.problem}</td>
