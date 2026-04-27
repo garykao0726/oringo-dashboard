@@ -219,7 +219,7 @@ async function loadSeoData(){
     rows.forEach(r=>{
       const label=String(r[3]||'').trim(),date=String(r[1]||'').trim();
       if(!label||!date)return;
-      if(!pageMap[label]||date>pageMap[label].date){
+      if(!pageMap[label]||date>=pageMap[label].date){
         const f=i=>({title:String(r[6+i*4]||''),problem:String(r[7+i*4]||''),steps:String(r[8+i*4]||''),effort:String(r[9+i*4]||'')});
         pageMap[label]={label,date,type:String(r[2]||''),score:Number(r[4])||0,summary:String(r[5]||''),fixes:[0,1,2].map(f).filter(x=>x.title)};
       }
