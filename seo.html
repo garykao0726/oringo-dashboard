@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>林果良品｜SEO 分析</title>
+<title>林果良品｜SEO 可見度監控</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--green:#284234;--dark:#002721;--sand:#E2CEB9;--sand-light:#F5EDE3;--rust:#A54A1A;--gray-pink:#CFA294;--brown:#8D5531;--bg:#F5EDE3;--surface:#ffffff;--surface2:#FAF5EF;--border:rgba(40,66,52,0.10);--border2:rgba(40,66,52,0.22);--text:#284234;--text-sub:#8D5531;--text-muted:#b09a88;--positive:#1a7a4a;--negative:#c0392b}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh}
+
+/* ── Header ── */
 .hdr{position:sticky;top:0;z-index:100;background:var(--green);height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem}
 .brand{display:flex;align-items:center;gap:14px}
 .brand-name{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.1em;color:var(--sand)}
@@ -18,18 +20,97 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .back-btn{padding:5px 14px;border-radius:20px;border:1px solid rgba(226,206,185,.3);font-size:11px;font-family:'Space Mono',monospace;color:var(--gray-pink);cursor:pointer;text-decoration:none;transition:all .2s}
 .back-btn:hover{border-color:var(--sand);color:var(--sand)}
 .hclock{font-family:'Space Mono',monospace;font-size:12px;color:var(--gray-pink)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#5be8a0;box-shadow:0 0 8px #5be8a0;animation:blink 2.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── Layout ── */
 .container{max-width:1400px;margin:0 auto;padding:1.75rem 2rem}
 .g2{display:grid;grid-template-columns:3fr 2fr;gap:1.25rem;margin-bottom:1.25rem}
-@media(max-width:1000px){.g2{grid-template-columns:1fr}}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:1.25rem}
+@media(max-width:1100px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.g3{grid-template-columns:1fr}}
+
+/* ── Section header ── */
 .sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .sec-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
 .sec-title::before{content:'';display:block;width:3px;height:14px;background:var(--rust);border-radius:2px}
 .sec-date{font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace}
+
+/* ── Card ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.35rem}
 .card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
 .card-lbl{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
 .card-lbl::before{content:'';display:block;width:3px;height:12px;background:var(--rust);border-radius:2px}
 .card-badge{font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+
+/* ── KPI bar ── */
+.kpi-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+@media(max-width:900px){.kpi-bar{grid-template-columns:repeat(2,1fr)}}
+.kc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1.1rem;position:relative;overflow:hidden}
+.kc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kc-color,var(--green))}
+.kc-l{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.kc-v{font-size:22px;font-weight:700;font-family:'Space Mono',monospace;color:var(--text);line-height:1;margin-bottom:5px}
+.kc-d{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.delta{font-size:10px;font-family:'Space Mono',monospace;padding:2px 6px;border-radius:3px}
+.pos{background:rgba(26,122,74,.08);color:var(--positive)}.neg{background:rgba(192,57,43,.08);color:var(--negative)}.neu{background:var(--surface2);color:var(--text-muted)}
+.kc-vs{font-size:10px;color:var(--text-muted)}
+
+/* ── Urgent tasks ── */
+.urgent-banner{background:var(--green);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;color:var(--sand)}
+.urgent-title{font-size:14px;font-weight:700;color:var(--sand);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.urgent-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:900px){.urgent-grid{grid-template-columns:1fr}}
+.urgent-card{background:rgba(226,206,185,.12);border:1px solid rgba(226,206,185,.2);border-radius:8px;padding:1rem}
+.urgent-num{font-family:'Space Mono',monospace;font-size:10px;color:var(--gray-pink);margin-bottom:6px}
+.urgent-page{font-size:10px;color:var(--gray-pink);font-family:'Space Mono',monospace;margin-bottom:4px}
+.urgent-fix{font-size:13px;font-weight:700;color:var(--sand);margin-bottom:6px;line-height:1.4}
+.urgent-prob{font-size:11px;color:rgba(226,206,185,.75);line-height:1.5;margin-bottom:8px}
+.urgent-step{font-size:10px;color:rgba(226,206,185,.65);line-height:1.6;border-top:1px solid rgba(226,206,185,.15);padding-top:7px}
+.effort-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'Space Mono',monospace;font-weight:700}
+.effort-low{background:rgba(46,125,79,.25);color:#6ee89a}
+.effort-mid{background:rgba(212,160,23,.2);color:#f0d060}
+.effort-hi{background:rgba(185,64,64,.25);color:#f08080}
+
+/* ── Page score cards ── */
+.score-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1rem;margin-bottom:1.25rem}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.1rem;position:relative;overflow:hidden;transition:box-shadow .2s}
+.sc:hover{box-shadow:0 4px 18px rgba(40,66,52,.1)}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--sc-color,var(--green))}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem}
+.sc-label{font-size:12px;font-weight:700;color:var(--text)}
+.sc-trend{font-size:11px;font-family:'Space Mono',monospace;font-weight:700}
+.sc-score{font-size:2.4rem;font-weight:700;font-family:'Space Mono',monospace;line-height:1;margin-bottom:2px}
+.sc-sub{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;margin-bottom:.5rem}
+.sc-bar{height:4px;background:var(--sand);border-radius:2px;overflow:hidden;margin-bottom:.6rem}
+.sc-bar-fill{height:100%;border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.sc-summary{font-size:.75rem;color:var(--text-muted);line-height:1.5;border-top:1px solid var(--border);padding-top:.5rem;margin-bottom:.4rem}
+.sc-fix{font-size:.73rem;color:var(--rust);font-weight:600}
+
+/* ── Progress table ── */
+.prog-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.prog-tbl th{text-align:left;padding:7px 10px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--border);background:var(--surface2)}
+.prog-tbl td{padding:9px 10px;border-bottom:1px solid var(--border)}
+.prog-tbl tr:last-child td{border-bottom:none}
+.prog-tbl tr:hover td{background:var(--surface2)}
+.effort-pill{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:.73rem;font-weight:700;font-family:'Space Mono',monospace}
+
+/* ── Competitor bars ── */
+.comp-row{margin-bottom:1rem}
+.comp-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.comp-name{font-size:.82rem;font-weight:600;color:var(--text)}
+.comp-name.own{font-weight:700;color:var(--green)}
+.comp-score{font-size:.88rem;font-weight:700;font-family:'Space Mono',monospace}
+.comp-bar-track{background:var(--sand);border-radius:4px;height:9px;overflow:hidden}
+.comp-bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+
+/* ── Progress ── */
+.prog{height:5px;background:var(--sand);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.prog-bar{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* ── Pending ── */
+.pending-box{background:#fdf6e0;border:1px solid #e8c84a;border-radius:8px;padding:1.1rem 1.35rem;margin-bottom:1.25rem;font-size:.84rem;color:#8a6200;display:flex;align-items:center;gap:.75rem}
+
+/* ── Footer ── */
 .footer{background:var(--green);text-align:center;padding:1.25rem;font-size:11px;font-family:'Space Mono',monospace;color:var(--gray-pink);margin-top:2rem}
 </style>
 </head>
@@ -38,40 +119,66 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   <div class="brand">
     <span class="brand-name">ORINGO</span>
     <div class="brand-sep"></div>
-    <span class="brand-sub">SEO ANALYSIS</span>
+    <span class="brand-sub">SEO 可見度監控</span>
   </div>
   <div class="hdr-r">
+    <div class="live-dot"></div>
     <div class="hclock" id="clock">--:--:--</div>
     <a class="back-btn" href="index.html">← 返回營運儀表板</a>
   </div>
 </header>
 
 <div class="container">
+
+  <!-- pending -->
+  <div id="seo-pending" style="display:none">
+    <div class="pending-box">
+      ⏳ <span>等待 SEO GAS 首次執行後自動顯示資料。跑一次 <code>runWeeklyReport()</code> 即可。</span>
+    </div>
+  </div>
+
+  <!-- KPI summary -->
   <div class="sec-hdr">
-    <div class="sec-title">AI SEO 可見度分析</div>
+    <div class="sec-title">AI SEO 可見度監控</div>
     <div class="sec-date" id="seo-period">—</div>
   </div>
+  <div class="kpi-bar" id="seo-kpi"></div>
 
-  <div id="seo-pending" style="display:none;background:#fdf6e0;border:1px solid #e8c84a;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.84rem;color:#8a6200">
-    ⏳ 等待 SEO GAS 首次執行後自動顯示資料。API credits 充值後跑一次 <code>runWeeklyReport()</code> 即可。
+  <!-- 本週必做 -->
+  <div class="urgent-banner" id="seo-urgent" style="display:none">
+    <div class="urgent-title">🚨 本週必做修改（依修改難度排序）</div>
+    <div class="urgent-grid" id="seo-urgent-grid"></div>
   </div>
 
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.25rem" id="seo-scores"></div>
+  <!-- 各頁面評分 -->
+  <div class="sec-hdr">
+    <div class="sec-title">各頁面 AI 可見度評分</div>
+    <div class="sec-date">分數 0–100，80+ 良好｜60–79 待改善｜60以下需優先處理</div>
+  </div>
+  <div class="score-grid" id="seo-scores"></div>
 
+  <!-- 行動清單 + 競品 -->
   <div class="g2">
     <div class="card">
-      <div class="card-hdr"><span class="card-lbl">本週急需處理</span><span class="card-badge">依難度排序</span></div>
+      <div class="card-hdr">
+        <span class="card-lbl">完整修改清單</span>
+        <span class="card-badge">依難度 × 緊急度排序</span>
+      </div>
       <div id="seo-actions"></div>
     </div>
     <div class="card">
-      <div class="card-hdr"><span class="card-lbl">競品 AI 可見度比較</span><span class="card-badge">最新分析</span></div>
-      <div id="seo-competitors" style="padding:.5rem 0"></div>
+      <div class="card-hdr">
+        <span class="card-lbl">競品 AI 可見度比較</span>
+        <span class="card-badge">本週分析</span>
+      </div>
+      <div id="seo-competitors" style="padding:.25rem 0"></div>
     </div>
   </div>
+
 </div>
 
 <footer class="footer">
-  林果良品 ORINGO｜SEO 分析｜每週自動更新
+  林果良品 ORINGO｜SEO 可見度監控｜每週一自動更新
   <span style="opacity:.4;font-size:10px;display:block;margin-top:3px">INTERNAL USE ONLY · ©2026 ORINGO</span>
 </footer>
 
@@ -81,13 +188,9 @@ let _gvizSeq=0;
 function loadGviz(sheetName){
   return new Promise((resolve,reject)=>{
     const cb='_gvizCb'+(++_gvizSeq);
-    window[cb]=function(resp){
-      delete window[cb];
-      const rows=(resp.table.rows||[]).map(r=>(r.c||[]).map(cell=>cell?cell.v:null));
-      resolve(rows);
-    };
+    window[cb]=function(resp){delete window[cb];resolve((resp.table.rows||[]).map(r=>(r.c||[]).map(c=>c?c.v:null)));};
     const s=document.createElement('script');
-    s.onerror=()=>reject(new Error('Load failed: '+sheetName));
+    s.onerror=()=>reject(new Error('Load failed'));
     s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}&sheet=${encodeURIComponent(sheetName)}`;
     document.head.appendChild(s);
   });
@@ -95,113 +198,193 @@ function loadGviz(sheetName){
 
 function seoClr(s){return s>=80?'#2d7a45':s>=60?'#b87a00':'#b03020';}
 function seoBg(s){return s>=80?'#e6f4eb':s>=60?'#fdf6e0':'#fcecea';}
+function effortTag(e){
+  const cls=e==='低'?'effort-low':e==='中'?'effort-mid':'effort-hi';
+  const lbl=e==='低'?'⚡ 30分鐘':e==='中'?'⏱ 半天':'🏗 需規劃';
+  return`<span class="effort-tag ${cls}">${lbl}</span>`;
+}
+function effortPill(e){
+  const ec=e==='低'?'#2d7a45':e==='中'?'#b87a00':'#b03020';
+  const eb=e==='低'?'#e6f4eb':e==='中'?'#fdf6e0':'#fcecea';
+  return`<span class="effort-pill" style="background:${eb};color:${ec}">${e||'—'}</span>`;
+}
 
 async function loadSeoData(){
   try{
     const rows=await loadGviz('SEO數據');
-    if(!rows||rows.length<1){showSeoPending();return;}
+    if(!rows||rows.length<1){showPending();return;}
+
+    // Build pageMap (latest per label)
     const pageMap={};
     rows.forEach(r=>{
-      const label=String(r[3]||'').trim();
-      const date=String(r[1]||'').trim();
+      const label=String(r[3]||'').trim(),date=String(r[1]||'').trim();
       if(!label||!date)return;
       if(!pageMap[label]||date>pageMap[label].date){
         const f=i=>({title:String(r[6+i*4]||''),problem:String(r[7+i*4]||''),steps:String(r[8+i*4]||''),effort:String(r[9+i*4]||'')});
         pageMap[label]={label,date,type:String(r[2]||''),score:Number(r[4])||0,summary:String(r[5]||''),fixes:[0,1,2].map(f).filter(x=>x.title)};
       }
     });
+
+    // Build trend history
     const histMap={};
-    rows.forEach(r=>{const l=String(r[3]||'').trim(),d=String(r[1]||'').trim(),s=Number(r[4])||0;if(!l||!d)return;if(!histMap[l])histMap[l]=[];histMap[l].push({d,s});});
+    rows.forEach(r=>{
+      const l=String(r[3]||'').trim(),d=String(r[1]||'').trim(),s=Number(r[4])||0;
+      if(!l||!d)return;
+      if(!histMap[l])histMap[l]=[];
+      histMap[l].push({d,s});
+    });
     Object.keys(histMap).forEach(l=>{
       histMap[l].sort((a,b)=>a.d>b.d?1:-1);
       const arr=histMap[l];
       if(arr.length>=2&&pageMap[l])pageMap[l].trend=arr[arr.length-1].s-arr[arr.length-2].s;
     });
+
     const all=Object.values(pageMap);
     const own=all.filter(p=>p.type==='自家');
     const comp=all.filter(p=>p.type==='競品');
-    if(!own.length){showSeoPending();return;}
+    if(!own.length){showPending();return;}
+
     const latest=all.reduce((a,b)=>a.date>b.date?a:b,all[0]);
-    document.getElementById('seo-period').textContent='更新 '+latest.date;
-    renderSeoScores(own);
-    renderSeoActions(own);
-    renderSeoCompetitors(own,comp);
-  }catch(e){
-    console.error('loadSeoData',e);
-    showSeoPending();
-  }
+    document.getElementById('seo-period').textContent='最近更新：'+latest.date;
+
+    renderKpi(own,comp);
+    renderUrgent(own);
+    renderScores(own);
+    renderActions(own);
+    renderCompetitors(own,comp);
+  }catch(e){console.error(e);showPending();}
 }
 
-function showSeoPending(){
+function showPending(){
   document.getElementById('seo-pending').style.display='block';
-  document.getElementById('seo-scores').innerHTML='';
-  document.getElementById('seo-actions').innerHTML='<div style="padding:1rem;color:var(--text-muted);font-size:.84rem">等待資料</div>';
-  document.getElementById('seo-competitors').innerHTML='<div style="padding:1rem;color:var(--text-muted);font-size:.84rem">等待資料</div>';
 }
 
-function renderSeoScores(own){
-  document.getElementById('seo-scores').innerHTML=own.map(p=>{
-    const clr=seoClr(p.score),bg=seoBg(p.score);
-    const trendHtml=p.trend!=null?(p.trend>0?`<span style="color:#2d7a45">↑+${p.trend}</span>`:p.trend<0?`<span style="color:#b03020">↓${p.trend}</span>`:`<span style="color:#888">持平</span>`):`<span style="color:#888">首次</span>`;
-    const topFix=p.fixes[0]?p.fixes[0].title:'—';
-    return`<div class="card" style="padding:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
-        <span style="font-size:.82rem;font-weight:700;color:var(--text)">${p.label}</span>
-        <span style="font-size:.72rem">${trendHtml}</span>
+function renderKpi(own,comp){
+  const avg=own.length?Math.round(own.reduce((s,p)=>s+p.score,0)/own.length):0;
+  const avgClr=seoClr(avg);
+  const critical=own.filter(p=>p.score<60).length;
+  const improved=own.filter(p=>p.trend!=null&&p.trend>0).length;
+  const ownAvg=avg;
+  const compAvg=comp.length?Math.round(comp.reduce((s,p)=>s+p.score,0)/comp.length):0;
+  const vsComp=compAvg>0?ownAvg-compAvg:null;
+
+  document.getElementById('seo-kpi').innerHTML=`
+    <div class="kc" style="--kc-color:${avgClr}">
+      <div class="kc-l">AI 可見度平均分</div>
+      <div class="kc-v" style="color:${avgClr}">${avg}</div>
+      <div class="kc-d"><span class="kc-vs">/ 100 分</span></div>
+    </div>
+    <div class="kc" style="--kc-color:${critical>0?'var(--rust)':'var(--positive)'}">
+      <div class="kc-l">需優先處理頁面</div>
+      <div class="kc-v" style="color:${critical>0?'var(--rust)':'var(--positive)'}">${critical}</div>
+      <div class="kc-d"><span class="kc-vs">分數低於 60 分</span></div>
+    </div>
+    <div class="kc" style="--kc-color:${improved>0?'var(--positive)':'var(--text-muted)'}">
+      <div class="kc-l">本週進步頁面</div>
+      <div class="kc-v" style="color:${improved>0?'var(--positive)':'var(--text-muted)'}">${improved}</div>
+      <div class="kc-d"><span class="kc-vs">vs 上次分析</span></div>
+    </div>
+    <div class="kc" style="--kc-color:${vsComp!=null?(vsComp>=0?'var(--positive)':'var(--rust)'):'var(--text-muted)'}">
+      <div class="kc-l">vs 競品平均</div>
+      <div class="kc-v" style="color:${vsComp!=null?(vsComp>=0?'var(--positive)':'var(--rust)'):'var(--text-muted)'}">${vsComp!=null?(vsComp>=0?'+':'')+vsComp:'—'}</div>
+      <div class="kc-d"><span class="kc-vs">我們 ${avg} | 競品 ${compAvg||'—'}</span></div>
+    </div>`;
+}
+
+function renderUrgent(own){
+  const allFixes=[];
+  own.forEach(p=>(p.fixes||[]).forEach(f=>allFixes.push({...f,pageLabel:p.label,pageScore:p.score})));
+  const ord={'低':0,'中':1,'高':2};
+  allFixes.sort((a,b)=>(ord[a.effort]||3)-(ord[b.effort]||3)||a.pageScore-b.pageScore);
+  const top=allFixes.slice(0,3);
+  if(!top.length)return;
+  document.getElementById('seo-urgent').style.display='block';
+  document.getElementById('seo-urgent-grid').innerHTML=top.map((f,i)=>{
+    const steps=f.steps?f.steps.split(' → ').filter(Boolean):[f.steps||''];
+    return`<div class="urgent-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div class="urgent-num">${['第一優先','第二優先','第三優先'][i]}</div>
+        ${effortTag(f.effort)}
       </div>
-      <div style="font-size:2rem;font-weight:700;color:${clr};font-family:'Space Mono',monospace;line-height:1">${p.score}</div>
-      <div style="font-size:.7rem;color:var(--text-muted);margin:.2rem 0 .4rem">/100 AI 可見度</div>
-      <div style="font-size:.76rem;color:var(--text);border-top:1px solid var(--border);padding-top:.4rem;margin-bottom:.3rem">${p.summary}</div>
-      <div style="font-size:.74rem;color:var(--rust);font-weight:600">⚡ ${topFix}</div>
+      <div class="urgent-page">📄 ${f.pageLabel}</div>
+      <div class="urgent-fix">${f.title}</div>
+      <div class="urgent-prob">${f.problem}</div>
+      ${steps.length?`<div class="urgent-step">${steps.map((s,si)=>`${si+1}. ${s}`).join('<br>')}</div>`:''}
     </div>`;
   }).join('');
 }
 
-function renderSeoActions(own){
+function renderScores(own){
+  const sorted=[...own].sort((a,b)=>a.score-b.score);
+  document.getElementById('seo-scores').innerHTML=sorted.map(p=>{
+    const clr=seoClr(p.score);
+    const trendVal=p.trend!=null?p.trend:null;
+    const trendHtml=trendVal!=null
+      ?(trendVal>0?`<span class="sc-trend" style="color:#2d7a45">↑ +${trendVal}</span>`
+        :trendVal<0?`<span class="sc-trend" style="color:#b03020">↓ ${trendVal}</span>`
+        :`<span class="sc-trend" style="color:#888">持平</span>`)
+      :`<span class="sc-trend" style="color:#aaa;font-size:.72rem">首次</span>`;
+    const urgent=p.score<60?` <span style="font-size:9px;background:#fcecea;color:#b03020;padding:1px 6px;border-radius:3px;font-family:'Space Mono',monospace">優先處理</span>`:'';
+    return`<div class="sc" style="--sc-color:${clr}">
+      <div class="sc-top">
+        <div>
+          <div class="sc-label">${p.label}${urgent}</div>
+        </div>
+        ${trendHtml}
+      </div>
+      <div class="sc-score" style="color:${clr}">${p.score}</div>
+      <div class="sc-sub">/100 AI 可見度分數</div>
+      <div class="sc-bar"><div class="sc-bar-fill" style="width:${p.score}%;background:${clr}"></div></div>
+      <div class="sc-summary">${p.summary}</div>
+      ${p.fixes[0]?`<div class="sc-fix">⚡ ${p.fixes[0].title}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderActions(own){
   const el=document.getElementById('seo-actions');
   const all=[];own.forEach(p=>(p.fixes||[]).forEach(f=>all.push({...f,pageLabel:p.label,pageScore:p.score})));
   const ord={'低':0,'中':1,'高':2};
   all.sort((a,b)=>(ord[a.effort]||3)-(ord[b.effort]||3)||a.pageScore-b.pageScore);
   if(!all.length){el.innerHTML='<div style="padding:1rem;color:var(--text-muted);font-size:.84rem">暫無資料</div>';return;}
-  const rows=all.map((f,i)=>{
-    const ec=f.effort==='低'?'#2d7a45':f.effort==='中'?'#b87a00':'#b03020';
-    const eb=f.effort==='低'?'#e6f4eb':f.effort==='中'?'#fdf6e0':'#fcecea';
-    return`<tr style="border-top:1px solid var(--border)">
-      <td style="padding:7px 8px;font-size:.78rem;color:var(--text-muted)">${i+1}</td>
-      <td style="padding:7px 8px"><span style="background:${eb};color:${ec};border-radius:4px;padding:2px 7px;font-size:.75rem;font-weight:600">${f.effort||'—'}</span></td>
-      <td style="padding:7px 8px;font-size:.78rem;color:var(--green);font-weight:600">${f.pageLabel}</td>
-      <td style="padding:7px 8px;font-size:.78rem;font-weight:600;color:var(--text)">${f.title}</td>
-      <td style="padding:7px 8px;font-size:.75rem;color:var(--text-muted)">${f.problem}</td>
-    </tr>`;
-  }).join('');
-  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+  el.innerHTML=`<div style="overflow-x:auto"><table class="prog-tbl">
     <thead><tr>
-      <th style="padding:7px 8px;font-size:.74rem;color:var(--text-muted);text-align:left">#</th>
-      <th style="padding:7px 8px;font-size:.74rem;color:var(--text-muted);text-align:left">難度</th>
-      <th style="padding:7px 8px;font-size:.74rem;color:var(--text-muted);text-align:left">頁面</th>
-      <th style="padding:7px 8px;font-size:.74rem;color:var(--text-muted);text-align:left">問題</th>
-      <th style="padding:7px 8px;font-size:.74rem;color:var(--text-muted);text-align:left">說明</th>
+      <th>#</th><th>難度</th><th>頁面</th><th>修改項目</th><th>問題說明</th>
     </tr></thead>
-    <tbody>${rows}</tbody></table></div>`;
+    <tbody>${all.map((f,i)=>`<tr>
+      <td style="font-family:'Space Mono',monospace;color:var(--text-muted);font-size:.78rem">${i+1}</td>
+      <td>${effortPill(f.effort)}</td>
+      <td style="font-size:.78rem;font-weight:700;color:var(--green);white-space:nowrap">${f.pageLabel}</td>
+      <td style="font-size:.78rem;font-weight:600">${f.title}</td>
+      <td style="font-size:.75rem;color:var(--text-muted);line-height:1.5">${f.problem}</td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
 }
 
-function renderSeoCompetitors(own,comp){
+function renderCompetitors(own,comp){
   const el=document.getElementById('seo-competitors');
   const ownAvg=own.length?Math.round(own.reduce((s,p)=>s+p.score,0)/own.length):0;
-  const all=[{label:'ORINGO（自家）',score:ownAvg,isOwn:true}].concat(comp.map(c=>({label:c.label,score:c.score,isOwn:false})));
+  const all=[{label:'ORINGO（自家）',score:ownAvg,isOwn:true,summary:'自家網站平均'}]
+    .concat(comp.map(c=>({label:c.label,score:c.score,isOwn:false,summary:c.summary||''})));
   all.sort((a,b)=>b.score-a.score);
-  const max=all[0]?.score||100;
-  el.innerHTML=all.map(b=>{
+  const max=Math.max(...all.map(b=>b.score),1);
+  const myRank=all.findIndex(b=>b.isOwn)+1;
+
+  el.innerHTML=`<div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--text-muted);margin-bottom:1rem">
+    ORINGO 排名 <b style="color:var(--green);font-size:14px">${myRank}</b> / ${all.length}
+  </div>`+all.map(b=>{
     const clr=seoClr(b.score);
     const pct=Math.round(b.score/max*100);
-    return`<div style="margin-bottom:.85rem;padding:0 .25rem">
-      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-        <span style="font-size:.82rem;font-weight:${b.isOwn?700:500};color:${b.isOwn?'var(--green)':'var(--text)'}">${b.label}</span>
-        <span style="font-size:.82rem;font-weight:700;color:${clr};font-family:'Space Mono',monospace">${b.score}</span>
+    return`<div class="comp-row">
+      <div class="comp-meta">
+        <span class="comp-name${b.isOwn?' own':''}">${b.isOwn?'🏠 ':''} ${b.label}</span>
+        <span class="comp-score" style="color:${clr}">${b.score}</span>
       </div>
-      <div style="background:var(--sand);border-radius:4px;height:7px">
-        <div style="background:${clr};width:${pct}%;height:7px;border-radius:4px"></div>
-      </div></div>`;
+      <div class="comp-bar-track">
+        <div class="comp-bar-fill" style="width:${pct}%;background:${clr}${b.isOwn?'':'99'}"></div>
+      </div>
+      ${b.summary?`<div style="font-size:.72rem;color:var(--text-muted);margin-top:3px">${b.summary}</div>`:''}
+    </div>`;
   }).join('');
 }
 
