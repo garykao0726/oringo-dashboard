@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "static-server (worktree index.html)",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8000"],
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "-l", "8000", "/Users/imakao/Library/CloudStorage/GoogleDrive-gary@oringoshoes.com/我的雲端硬碟/Claude/.claude/worktrees/heuristic-kalam-2a20d4"],
       "port": 8000
     },
     {

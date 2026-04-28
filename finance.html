@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>林果良品｜財務報表</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- ════════════════════════════════════════════════════
+     ★ 設定區 — 部署前請填寫以下兩項
+     ════════════════════════════════════════════════════
+  1. GOOGLE_CLIENT_ID
+     → Google Cloud Console > API & Services > 憑證
+     → 建立「OAuth 2.0 用戶端 ID」(類型：網路應用程式)
+     → 已授權 JavaScript 來源填入：https://garykao0726.github.io
+     → 將產生的 Client ID 貼到下方
+
+  2. ALLOWED_EMAILS
+     → 可瀏覽財務報表的 Google 帳號 email 清單
+     ════════════════════════════════════════════════════ -->
+<script>
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+const ALLOWED_EMAILS   = [
+  'gary@oringoshoes.com',
+  // 在此繼續新增主管 email
+];
+</script>
+
+<style>
+:root{--green:#284234;--dark:#002721;--sand:#E2CEB9;--sand-light:#F5EDE3;--rust:#A54A1A;--gray-pink:#CFA294;--brown:#8D5531;--bg:#F5EDE3;--surface:#ffffff;--surface2:#FAF5EF;--border:rgba(40,66,52,0.10);--border2:rgba(40,66,52,0.22);--text:#284234;--text-sub:#8D5531;--text-muted:#b09a88;--positive:#1a7a4a;--negative:#c0392b}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh}
+
+/* ── Header ── */
+.hdr{position:sticky;top:0;z-index:100;background:var(--green);height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-name{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.1em;color:var(--sand)}
+.brand-sep{width:1px;height:16px;background:rgba(226,206,185,.3)}
+.brand-sub{font-size:10px;color:var(--gray-pink);font-family:'Space Mono',monospace}
+.hdr-r{display:flex;align-items:center;gap:14px}
+.back-link{font-family:'Space Mono',monospace;font-size:11px;color:var(--gray-pink);text-decoration:none;border:1px solid rgba(226,206,185,.25);padding:3px 10px;border-radius:20px;transition:all .15s}
+.back-link:hover{color:var(--sand);border-color:var(--sand)}
+.user-chip{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 6px;border-radius:20px;border:1px solid rgba(226,206,185,.25);cursor:pointer;transition:all .15s}
+.user-chip:hover{border-color:rgba(226,206,185,.5)}
+.user-avatar{width:24px;height:24px;border-radius:50%;object-fit:cover}
+.user-name{font-family:'Space Mono',monospace;font-size:10px;color:var(--gray-pink)}
+.lock-badge{font-size:10px;font-family:'Space Mono',monospace;color:#e8a87c;letter-spacing:.05em;padding:3px 10px;border:1px solid rgba(232,168,124,.3);border-radius:20px}
+
+/* ── Auth gate ── */
+#auth-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 54px);gap:20px;padding:40px}
+.gate-icon{font-size:48px;margin-bottom:8px}
+.gate-title{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--green);letter-spacing:-.01em;text-align:center}
+.gate-sub{font-size:13px;color:var(--text-muted);text-align:center;line-height:1.8;max-width:360px}
+#g_id_signin{margin-top:8px}
+.denied-box{background:#fff3f0;border:1px solid rgba(192,57,43,.18);border-radius:12px;padding:20px 28px;text-align:center;max-width:360px}
+.denied-box strong{color:var(--negative);font-size:13px;display:block;margin-bottom:6px}
+.denied-box span{font-size:12px;color:var(--text-muted)}
+
+/* ── Main content ── */
+#main-content{display:none}
+.container{max-width:1400px;margin:0 auto;padding:1.75rem 2rem}
+.page-title{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--green);margin-bottom:4px}
+.page-sub{font-size:12px;color:var(--text-muted);margin-bottom:1.5rem;font-family:'Space Mono',monospace}
+
+/* ── KPI grid ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;position:relative}
+.kpi-label{font-size:11px;color:var(--text-muted);margin-bottom:8px;font-family:'Space Mono',monospace;letter-spacing:.05em}
+.kpi-val{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--green);letter-spacing:-.02em}
+.kpi-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+.kpi-delta{font-size:11px;font-weight:700;margin-top:6px}
+.kpi-delta.pos{color:var(--positive)}.kpi-delta.neg{color:var(--negative)}
+
+/* ── Section card ── */
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:1.25rem}
+.card-hd{font-size:13px;font-weight:700;color:var(--green);margin-bottom:16px;font-family:'Space Mono',monospace}
+.chart-wrap{position:relative;height:260px}
+
+/* ── Table ── */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 12px;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.05em;border-bottom:1px solid var(--border2)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+tr:last-child td{border-bottom:none}
+.num{text-align:right;font-family:'Space Mono',monospace}
+.pos{color:var(--positive)}.neg{color:var(--negative)}
+
+/* ── Grid layouts ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+@media(max-width:700px){.g2,.kpi-grid{grid-template-columns:1fr}}
+
+/* ── Watermark ── */
+.sensitive-notice{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);margin-bottom:1.25rem;padding:10px 14px;background:rgba(165,74,26,.05);border:1px solid rgba(165,74,26,.12);border-radius:8px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="brand">
+    <div class="brand-name">ORINGO</div>
+    <div class="brand-sep"></div>
+    <div class="brand-sub">財務報表</div>
+  </div>
+  <div class="hdr-r">
+    <span class="lock-badge">🔒 RESTRICTED</span>
+    <div id="user-chip" class="user-chip" style="display:none" onclick="signOut()">
+      <img id="user-avatar" class="user-avatar" src="" alt="">
+      <span id="user-name" class="user-name"></span>
+    </div>
+    <a class="back-link" href="https://garykao0726.github.io/">← Hub</a>
+  </div>
+</div>
+
+<!-- ══ Auth gate (shown before sign-in) ══ -->
+<div id="auth-gate">
+  <div class="gate-icon">🔒</div>
+  <div class="gate-title">財務報表 — 限制存取</div>
+  <div class="gate-sub">此頁面包含公司淨利與財務資料，僅限授權主管檢視。<br>請使用公司 Google 帳號登入驗證身份。</div>
+  <div id="g_id_signin"></div>
+  <div id="denied-msg" class="denied-box" style="display:none">
+    <strong>存取遭拒</strong>
+    <span id="denied-email"></span><br>
+    <span>此帳號未獲授權。請聯絡系統管理員。</span>
+  </div>
+</div>
+
+<!-- ══ Main content (shown after auth) ══ -->
+<div id="main-content">
+  <div class="container">
+    <div class="page-title">財務報表</div>
+    <div class="page-sub" id="finance-subtitle">財務資料 · 限主管檢視</div>
+
+    <div class="sensitive-notice">
+      🔒 本頁資料屬機密，請勿截圖或轉發。目前登入帳號：<strong id="logged-email"></strong>
+    </div>
+
+    <!-- KPI Overview -->
+    <div class="kpi-grid" id="kpi-grid">
+      <!-- populated by JS -->
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-hd">月度淨利趨勢</div>
+        <div class="chart-wrap"><canvas id="profit-chart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hd">費用結構佔比</div>
+        <div class="chart-wrap"><canvas id="expense-chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">月度財務摘要</div>
+      <table id="finance-table">
+        <thead>
+          <tr>
+            <th>月份</th>
+            <th class="num">營收</th>
+            <th class="num">毛利</th>
+            <th class="num">毛利率</th>
+            <th class="num">營業費用</th>
+            <th class="num">淨利</th>
+            <th class="num">淨利率</th>
+          </tr>
+        </thead>
+        <tbody id="finance-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+/* ── Auth ── */
+let currentUser = null;
+
+window.onload = function() {
+  if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+    document.getElementById('auth-gate').innerHTML = `
+      <div class="gate-icon">⚙️</div>
+      <div class="gate-title">尚未設定 OAuth Client ID</div>
+      <div class="gate-sub" style="max-width:480px">
+        請在 finance.html 頂端的設定區填入 <code>GOOGLE_CLIENT_ID</code>。<br><br>
+        步驟：<br>
+        1. 開啟 Google Cloud Console → API & Services → 憑證<br>
+        2. 建立 OAuth 2.0 用戶端 ID（類型：網路應用程式）<br>
+        3. 已授權 JS 來源填入 <code>https://garykao0726.github.io</code><br>
+        4. 將 Client ID 貼回 finance.html
+      </div>`;
+    return;
+  }
+
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleCredential,
+    auto_select: true,
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('g_id_signin'),
+    { theme: 'outline', size: 'large', text: 'signin_with', locale: 'zh-TW' }
+  );
+  google.accounts.id.prompt();
+};
+
+function handleCredential(response) {
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  const email = payload.email;
+  currentUser = payload;
+
+  if (ALLOWED_EMAILS.map(e => e.toLowerCase()).includes(email.toLowerCase())) {
+    grantAccess(payload);
+  } else {
+    document.getElementById('denied-msg').style.display = 'block';
+    document.getElementById('denied-email').textContent = email;
+  }
+}
+
+function grantAccess(user) {
+  document.getElementById('auth-gate').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('user-chip').style.display = 'flex';
+  document.getElementById('user-avatar').src = user.picture || '';
+  document.getElementById('user-name').textContent = user.name || user.email;
+  document.getElementById('logged-email').textContent = user.email;
+  renderFinance();
+}
+
+function signOut() {
+  google.accounts.id.disableAutoSelect();
+  currentUser = null;
+  document.getElementById('auth-gate').style.display = 'flex';
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('user-chip').style.display = 'none';
+  document.getElementById('denied-msg').style.display = 'none';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   財務資料區
+   TODO: 將下方 MOCK 數據替換為真實 Google Sheets gviz 資料
+   Sheet 結構建議：月份, 營收, 進貨成本, 毛利, 毛利率,
+                   租金, 薪資, 行銷費用, 其他費用, 淨利, 淨利率
+   ══════════════════════════════════════════════════════════════ */
+const FINANCE_MOCK = [
+  { month:'2025-10', revenue:2180000, cogs:1090000, gross:1090000, grossPct:.50, opex:820000, net:270000, netPct:.124 },
+  { month:'2025-11', revenue:2340000, cogs:1170000, gross:1170000, grossPct:.50, opex:830000, net:340000, netPct:.145 },
+  { month:'2025-12', revenue:2820000, cogs:1410000, gross:1410000, grossPct:.50, opex:860000, net:550000, netPct:.195 },
+  { month:'2026-01', revenue:1980000, cogs: 990000, gross: 990000, grossPct:.50, opex:810000, net:180000, netPct:.091 },
+  { month:'2026-02', revenue:2060000, cogs:1030000, gross:1030000, grossPct:.50, opex:815000, net:215000, netPct:.104 },
+  { month:'2026-03', revenue:2250000, cogs:1125000, gross:1125000, grossPct:.50, opex:840000, net:285000, netPct:.127 },
+];
+
+const EXPENSE_MOCK = { 租金:280000, 薪資:380000, 行銷費用:120000, 其他費用:60000 };
+
+function fmt(n){ return '$ '+n.toLocaleString('zh-TW') }
+function pct(n){ return (n*100).toFixed(1)+'%' }
+function deltaClass(n){ return n>=0?'pos':'neg' }
+
+function renderFinance() {
+  /* KPI cards */
+  const last = FINANCE_MOCK[FINANCE_MOCK.length-1];
+  const prev = FINANCE_MOCK[FINANCE_MOCK.length-2];
+  const ytd  = FINANCE_MOCK.filter(r=>r.month.startsWith('2026'));
+  const ytdRev = ytd.reduce((s,r)=>s+r.revenue,0);
+  const ytdNet = ytd.reduce((s,r)=>s+r.net,0);
+  const revDelta = ((last.revenue - prev.revenue)/prev.revenue);
+  const netDelta = ((last.net - prev.net)/prev.net);
+
+  const kpis = [
+    { label:'本月營收', val:fmt(last.revenue), delta:(revDelta>=0?'▲':'▼')+' '+pct(Math.abs(revDelta))+' vs 上月', cls:deltaClass(revDelta) },
+    { label:'本月淨利', val:fmt(last.net),     delta:(netDelta>=0?'▲':'▼')+' '+pct(Math.abs(netDelta))+' vs 上月', cls:deltaClass(netDelta) },
+    { label:'本月毛利率', val:pct(last.grossPct), delta:'', cls:'' },
+    { label:'本月淨利率', val:pct(last.netPct),   delta:'', cls:'' },
+    { label:'年初至今營收', val:fmt(ytdRev), delta:'2026 年迄今', cls:'' },
+    { label:'年初至今淨利', val:fmt(ytdNet), delta:'2026 年迄今', cls:'' },
+  ];
+  document.getElementById('kpi-grid').innerHTML = kpis.map(k=>`
+    <div class="kpi">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val">${k.val}</div>
+      ${k.delta?`<div class="kpi-delta ${k.cls}">${k.delta}</div>`:''}
+    </div>`).join('');
+
+  /* Table */
+  document.getElementById('finance-tbody').innerHTML = [...FINANCE_MOCK].reverse().map(r=>`
+    <tr>
+      <td>${r.month}</td>
+      <td class="num">${fmt(r.revenue)}</td>
+      <td class="num">${fmt(r.gross)}</td>
+      <td class="num">${pct(r.grossPct)}</td>
+      <td class="num">${fmt(r.opex)}</td>
+      <td class="num ${deltaClass(r.net)}">${fmt(r.net)}</td>
+      <td class="num ${deltaClass(r.net)}">${pct(r.netPct)}</td>
+    </tr>`).join('');
+
+  /* Profit trend chart */
+  const labels = FINANCE_MOCK.map(r=>r.month.slice(5)+'月');
+  new Chart(document.getElementById('profit-chart'), {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        { label:'營收', data:FINANCE_MOCK.map(r=>r.revenue), backgroundColor:'rgba(40,66,52,.15)', borderColor:'rgba(40,66,52,.4)', borderWidth:1.5, borderRadius:4 },
+        { label:'淨利', data:FINANCE_MOCK.map(r=>r.net), backgroundColor:'rgba(26,122,74,.7)', borderRadius:4 },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ font:{size:11}, color:'#284234' } } },
+      scales:{
+        x:{ grid:{ display:false }, ticks:{ color:'#b09a88', font:{size:11} } },
+        y:{ grid:{ color:'rgba(40,66,52,.06)' }, ticks:{ color:'#b09a88', font:{size:11}, callback:v=>'$'+(v/10000).toFixed(0)+'萬' } }
+      }
+    }
+  });
+
+  /* Expense donut */
+  const expLabels = Object.keys(EXPENSE_MOCK);
+  const expVals   = Object.values(EXPENSE_MOCK);
+  new Chart(document.getElementById('expense-chart'), {
+    type:'doughnut',
+    data:{
+      labels: expLabels,
+      datasets:[{ data:expVals, backgroundColor:['#284234','#A54A1A','#CFA294','#8D5531'], borderWidth:0, hoverOffset:6 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ font:{size:11}, color:'#284234', padding:16 } },
+        tooltip:{ callbacks:{ label: ctx=>' '+ctx.label+': $'+ctx.raw.toLocaleString('zh-TW') } }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
