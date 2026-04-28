@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>林果良品｜商品銷售分析</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--green:#284234;--dark:#002721;--sand:#E2CEB9;--sand-light:#F5EDE3;--rust:#A54A1A;--gray-pink:#CFA294;--brown:#8D5531;--bg:#F5EDE3;--surface:#fff;--surface2:#FAF5EF;--border:rgba(40,66,52,.10);--border2:rgba(40,66,52,.22);--text:#284234;--text-sub:#8D5531;--text-muted:#b09a88;--pos:#1a7a4a;--neg:#c0392b;--warn:#b07d12}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh}
+
+/* ── Header ── */
+.hdr{position:sticky;top:0;z-index:100;background:var(--green);height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-name{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.1em;color:var(--sand)}
+.brand-sep{width:1px;height:16px;background:rgba(226,206,185,.3)}
+.brand-sub{font-size:10px;color:var(--gray-pink);font-family:'Space Mono',monospace}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#5be8a0;box-shadow:0 0 8px #5be8a0;animation:blink 2.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hdr-tag{font-family:'Space Mono',monospace;font-size:11px;color:var(--gray-pink);border:1px solid rgba(226,206,185,.25);padding:3px 10px;border-radius:20px}
+.back-link{font-family:'Space Mono',monospace;font-size:11px;color:var(--gray-pink);text-decoration:none;border:1px solid rgba(226,206,185,.25);padding:3px 10px;border-radius:20px;transition:all .15s}
+.back-link:hover{color:var(--sand);border-color:var(--sand)}
+
+/* ── Banner ── */
+.banner{padding:7px 2rem;font-size:11px;font-family:'Space Mono',monospace;display:flex;align-items:center;gap:8px}
+.banner.loading{background:rgba(40,66,52,.06);color:var(--text-muted)}
+.banner.live{background:rgba(26,122,74,.07);color:var(--pos)}
+.banner.warn{background:rgba(165,74,26,.07);color:var(--rust)}
+
+/* ── Layout ── */
+.container{max-width:1380px;margin:0 auto;padding:1.75rem 2rem}
+.sec{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin:1.5rem 0 .75rem;font-family:'Space Mono',monospace}
+
+/* ── KPI grid ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.kpi-label{font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:'Space Mono',monospace;letter-spacing:.05em}
+.kpi-val{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.kpi-sub{font-size:11px;color:var(--text-muted);margin-top:5px}
+
+/* ── Tab switcher ── */
+.tab-bar{display:flex;gap:6px;margin-bottom:.875rem}
+.tab-btn{font-family:'Space Mono',monospace;font-size:11px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s}
+.tab-btn.active{background:var(--green);color:var(--sand);border-color:var(--green)}
+
+/* ── Ranking table ── */
+.rank-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.25rem}
+.rank-hd{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.rank-hd-title{font-size:13px;font-weight:700;color:var(--green)}
+.rank-hd-sub{font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace}
+.rank-table{width:100%;border-collapse:collapse}
+.rank-table th{padding:8px 16px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.06em;color:var(--text-muted);text-align:left;border-bottom:1px solid var(--border2);background:var(--surface2)}
+.rank-table th.num{text-align:right}
+.rank-table td{padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.rank-table tr:last-child td{border-bottom:none}
+.rank-table td.num{text-align:right;font-family:'Space Mono',monospace}
+.rank-table tr:hover td{background:var(--surface2)}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700}
+.badge-1{background:#fdf0d5;color:#9a6500}
+.badge-2{background:#f0f0f0;color:#555}
+.badge-3{background:#fde8de;color:#8a3b10}
+.badge-n{background:var(--surface2);color:var(--text-muted)}
+.product-name{font-weight:500}
+.product-var{font-size:11px;color:var(--text-muted);margin-top:2px}
+.bar-bg{height:6px;background:#e8e2d8;border-radius:3px;margin-top:4px}
+.bar-fg{height:6px;border-radius:3px;background:var(--green);transition:width .4s}
+.bar-fg.gold{background:#d4972c}
+.no-data{text-align:center;padding:40px;color:var(--text-muted);font-size:13px}
+
+/* ── Dual columns ── */
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+
+/* ── Store cards ── */
+.store-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.875rem;margin-bottom:1.25rem}
+.store-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.store-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.store-name{font-family:'Space Mono',monospace;font-size:13px;font-weight:700}
+.store-ach{font-size:16px;font-weight:700;font-family:'Space Mono',monospace}
+.bar-track{height:4px;background:#e8e2d8;border-radius:2px;margin-bottom:6px}
+.bar-fill{height:4px;border-radius:2px}
+.store-meta{font-size:11px;color:var(--text-muted);margin-bottom:8px}
+.store-rates{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.rate-row{display:flex;justify-content:space-between;font-size:11px}
+.rate-lbl{color:var(--text-muted)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.warn{color:var(--warn)}
+
+/* ── Chart card ── */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:1.25rem}
+.chart-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+.chart-wrap{position:relative;height:240px}
+
+/* ── Loading skeleton ── */
+.skel{background:linear-gradient(90deg,#e8e2d8 25%,#f0ece4 50%,#e8e2d8 75%);background-size:200% 100%;animation:skel .9s infinite;border-radius:6px;height:18px;margin-bottom:8px}
+@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+@media(max-width:900px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .store-grid{grid-template-columns:repeat(2,1fr)}
+  .cols2{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .container{padding:1rem}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .store-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="brand">
+    <div class="brand-name">ORINGO</div>
+    <div class="brand-sep"></div>
+    <div class="brand-sub">商品銷售分析</div>
+  </div>
+  <div class="hdr-r">
+    <div class="live-dot"></div>
+    <span class="hdr-tag" id="hdr-week">讀取中…</span>
+    <a class="back-link" href="https://garykao0726.github.io/">← Hub</a>
+  </div>
+</div>
+
+<div class="banner loading" id="banner">⏳ 讀取銷售資料…</div>
+
+<div class="container">
+
+  <!-- KPI -->
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi"><div class="skel" style="width:60%;height:12px"></div><div class="skel" style="width:80%;height:28px;margin-top:8px"></div></div>
+    <div class="kpi"><div class="skel" style="width:60%;height:12px"></div><div class="skel" style="width:80%;height:28px;margin-top:8px"></div></div>
+    <div class="kpi"><div class="skel" style="width:60%;height:12px"></div><div class="skel" style="width:80%;height:28px;margin-top:8px"></div></div>
+    <div class="kpi"><div class="skel" style="width:60%;height:12px"></div><div class="skel" style="width:80%;height:28px;margin-top:8px"></div></div>
+  </div>
+
+  <!-- Ranking tabs -->
+  <div class="sec">線上熱銷排行 Top 20（Shopline）</div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchRank('qty',this)">依銷售件數</button>
+    <button class="tab-btn" onclick="switchRank('rev',this)">依銷售金額</button>
+  </div>
+
+  <div id="rank-by-qty">
+    <div class="rank-card">
+      <div class="rank-hd">
+        <span class="rank-hd-title">📦 銷售件數排行</span>
+        <span class="rank-hd-sub" id="rank-period">—</span>
+      </div>
+      <table class="rank-table">
+        <thead><tr>
+          <th style="width:40px">排名</th>
+          <th>商品</th>
+          <th class="num">件數</th>
+          <th class="num">金額</th>
+          <th class="num">均價</th>
+          <th style="width:100px">佔比</th>
+        </tr></thead>
+        <tbody id="rank-qty-body"><tr><td colspan="6" class="no-data">讀取中…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="rank-by-rev" style="display:none">
+    <div class="rank-card">
+      <div class="rank-hd">
+        <span class="rank-hd-title">💰 銷售金額排行</span>
+        <span class="rank-hd-sub" id="rank-period-2">—</span>
+      </div>
+      <table class="rank-table">
+        <thead><tr>
+          <th style="width:40px">排名</th>
+          <th>商品</th>
+          <th class="num">金額</th>
+          <th class="num">件數</th>
+          <th class="num">均價</th>
+          <th style="width:100px">佔比</th>
+        </tr></thead>
+        <tbody id="rank-rev-body"><tr><td colspan="6" class="no-data">讀取中…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Trend chart -->
+  <div class="sec">熱銷商品週趨勢（件數）</div>
+  <div class="chart-card">
+    <div class="chart-legend" id="trend-legend"></div>
+    <div class="chart-wrap"><canvas id="trend-chart"></canvas></div>
+  </div>
+
+  <!-- Store performance -->
+  <div class="sec">門市週業績概況</div>
+  <div class="store-grid" id="store-grid">
+    <div class="store-card"><div class="skel"></div><div class="skel" style="width:60%"></div></div>
+    <div class="store-card"><div class="skel"></div><div class="skel" style="width:60%"></div></div>
+    <div class="store-card"><div class="skel"></div><div class="skel" style="width:60%"></div></div>
+    <div class="store-card"><div class="skel"></div><div class="skel" style="width:60%"></div></div>
+    <div class="store-card"><div class="skel"></div><div class="skel" style="width:60%"></div></div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+/* ════════════════════════════════════════
+   設定
+   ════════════════════════════════════════ */
+const SHEET_ID = '17hTgCpF0mBTHf3RcnDmRFrJMeLBn3nRdTMuG8l58QjY';
+
+/* 商品週報 columns (0-indexed):
+   0:更新時間  1:週期  2:商品名稱  3:規格  4:件數  5:金額  6:訂單數  7:均價 */
+const P_PERIOD=1, P_NAME=2, P_VAR=3, P_QTY=4, P_REV=5, P_ORD=6, P_AVG=7;
+
+/* 週報數據 columns:
+   0:更新時間  1:週期  2:門市  3:週營收  4:週目標  5:週達成率
+   6:總來客  7:新客  8:舊客  9:維修  10:新客成交  11:回購成交  12:總成交
+   13:客單價  14:成交率  15:月累計  16:月目標  17:月達成率  18:週訂單數 */
+const S_PERIOD=1, S_STORE=2, S_WREV=3, S_WTGT=4, S_WACH=5, S_VISITORS=6,
+      S_TXN=12, S_AVG=13, S_CVR=14, S_MTD=15, S_MTGT=16, S_MACH=17;
+
+const STORE_COLORS = {
+  '中山店':'#378ADD','松菸店':'#1D9E75','東門店':'#D4537E',
+  '台中店':'#EF9F27','官網':'#888780'
+};
+
+/* ════════════════════════════════════════
+   gviz loader
+   ════════════════════════════════════════ */
+function loadGviz(tabName) {
+  return new Promise((resolve, reject) => {
+    const cb = 'gviz_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    window[cb] = data => {
+      delete window[cb];
+      document.head.removeChild(el);
+      if (!data || !data.table) { reject(new Error('no table')); return; }
+      resolve(data.table.rows.map(r => r.c.map(c => c?.v ?? null)));
+    };
+    const el = document.createElement('script');
+    el.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&callback=${cb}&sheet=${encodeURIComponent(tabName)}`;
+    el.onerror = () => { delete window[cb]; reject(new Error('load failed')); };
+    document.head.appendChild(el);
+  });
+}
+
+function n(v) { return parseFloat(v) || 0; }
+function fmt(v) { return Math.round(v).toLocaleString('zh-TW'); }
+function fmtW(v) { return (Math.round(v/1000)/10).toFixed(1) + '萬'; }
+function pctStr(v) { return (n(v)*100).toFixed(1) + '%'; }
+function achColor(v) { return v >= 1 ? 'pos' : v >= .85 ? 'warn' : 'neg'; }
+
+/* ════════════════════════════════════════
+   Rank tab switcher
+   ════════════════════════════════════════ */
+function switchRank(mode, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('rank-by-qty').style.display = mode === 'qty' ? 'block' : 'none';
+  document.getElementById('rank-by-rev').style.display = mode === 'rev' ? 'block' : 'none';
+}
+
+/* ════════════════════════════════════════
+   Rank badge helper
+   ════════════════════════════════════════ */
+function badge(rank) {
+  if (rank === 1) return '<span class="rank-badge badge-1">🥇</span>';
+  if (rank === 2) return '<span class="rank-badge badge-2">🥈</span>';
+  if (rank === 3) return '<span class="rank-badge badge-3">🥉</span>';
+  return `<span class="rank-badge badge-n">${rank}</span>`;
+}
+
+/* ════════════════════════════════════════
+   Main
+   ════════════════════════════════════════ */
+async function init() {
+  let products = [], stores = [];
+
+  try {
+    [products, stores] = await Promise.all([
+      loadGviz('商品週報').catch(() => []),
+      loadGviz('週報數據').catch(() => []),
+    ]);
+  } catch(e) {
+    setBanner('warn', '⚠ 資料讀取失敗，請確認試算表已共用為「知道連結的人可以檢視」');
+    return;
+  }
+
+  /* ── Products data ── */
+  if (!products.length) {
+    setBanner('warn', '⏳ 尚無商品資料，等待 GAS 執行後自動更新');
+    renderNoProductData();
+    if (stores.length) renderStores(stores);
+    return;
+  }
+
+  /* Get latest period */
+  const periods = [...new Set(products.map(r => String(r[P_PERIOD] || '')).filter(Boolean))].sort();
+  const latestPeriod = periods[periods.length - 1];
+  const curProducts  = products.filter(r => String(r[P_PERIOD]) === latestPeriod);
+
+  document.getElementById('hdr-week').textContent = latestPeriod;
+  document.getElementById('rank-period').textContent  = latestPeriod;
+  document.getElementById('rank-period-2').textContent = latestPeriod;
+  setBanner('live', `✅ 即時資料 · 週期：${latestPeriod}`);
+
+  /* Sort by qty and revenue */
+  const byQty = [...curProducts].sort((a,b) => n(b[P_QTY]) - n(a[P_QTY]));
+  const byRev = [...curProducts].sort((a,b) => n(b[P_REV]) - n(a[P_REV]));
+
+  const totalQty = byQty.reduce((s,r) => s + n(r[P_QTY]), 0);
+  const totalRev = byQty.reduce((s,r) => s + n(r[P_REV]), 0);
+  const totalOrd = byQty.reduce((s,r) => s + n(r[P_ORD]), 0);
+  const avgTicket = totalOrd > 0 ? totalRev / totalOrd : 0;
+
+  /* KPIs */
+  const top1 = byQty[0];
+  document.getElementById('kpi-grid').innerHTML = [
+    { label:'本週線上最熱銷', val: top1 ? String(top1[P_NAME]).slice(0,14) : '—', sub: top1 ? `${n(top1[P_QTY])} 件` : '' },
+    { label:'線上銷售件數',   val: fmt(totalQty) + ' 件', sub: `共 ${curProducts.length} 個 SKU` },
+    { label:'線上銷售金額',   val: '$ ' + fmt(totalRev), sub: `訂單 ${fmt(totalOrd)} 筆` },
+    { label:'線上平均客單',   val: '$ ' + fmt(avgTicket), sub: `佔比最高：${top1 ? pctStr(n(top1[P_QTY])/totalQty) : '—'}` },
+  ].map(k => `
+    <div class="kpi">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+
+  /* Ranking tables */
+  const maxQty = n(byQty[0]?.[P_QTY] || 0);
+  const maxRev = n(byRev[0]?.[P_REV] || 0);
+  const TOP = 20;
+
+  document.getElementById('rank-qty-body').innerHTML = byQty.slice(0, TOP).map((r,i) => {
+    const qty = n(r[P_QTY]), rev = n(r[P_REV]), avg = n(r[P_AVG]);
+    const pct = maxQty > 0 ? qty/maxQty*100 : 0;
+    return `<tr>
+      <td>${badge(i+1)}</td>
+      <td>
+        <div class="product-name">${r[P_NAME] || '—'}</div>
+        <div class="product-var">${r[P_VAR] || ''}</div>
+      </td>
+      <td class="num"><strong>${fmt(qty)}</strong></td>
+      <td class="num">$ ${fmt(rev)}</td>
+      <td class="num">$ ${fmt(avg)}</td>
+      <td>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">${(qty/totalQty*100).toFixed(1)}%</div>
+        <div class="bar-bg"><div class="bar-fg${i===0?' gold':''}" style="width:${pct.toFixed(1)}%"></div></div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('rank-rev-body').innerHTML = byRev.slice(0, TOP).map((r,i) => {
+    const qty = n(r[P_QTY]), rev = n(r[P_REV]), avg = n(r[P_AVG]);
+    const pct = maxRev > 0 ? rev/maxRev*100 : 0;
+    return `<tr>
+      <td>${badge(i+1)}</td>
+      <td>
+        <div class="product-name">${r[P_NAME] || '—'}</div>
+        <div class="product-var">${r[P_VAR] || ''}</div>
+      </td>
+      <td class="num"><strong>$ ${fmt(rev)}</strong></td>
+      <td class="num">${fmt(qty)} 件</td>
+      <td class="num">$ ${fmt(avg)}</td>
+      <td>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">${(rev/totalRev*100).toFixed(1)}%</div>
+        <div class="bar-bg"><div class="bar-fg${i===0?' gold':''}" style="width:${pct.toFixed(1)}%"></div></div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  /* Trend chart — top 5 products across weeks */
+  renderTrendChart(products, byQty.slice(0, 5).map(r => String(r[P_NAME])), periods.slice(-8));
+
+  /* Store cards */
+  if (stores.length) renderStores(stores);
+}
+
+function renderNoProductData() {
+  const msg = '<tr><td colspan="6" class="no-data">⏳ GAS 尚未推送商品資料，請先在 GAS 執行 <code>sendWeeklyProductReport()</code></td></tr>';
+  document.getElementById('rank-qty-body').innerHTML = msg;
+  document.getElementById('rank-rev-body').innerHTML = msg;
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi"><div class="kpi-label">狀態</div><div class="kpi-val" style="font-size:16px">等待 GAS</div><div class="kpi-sub">首次執行後自動顯示</div></div>`;
+}
+
+function renderTrendChart(products, top5names, periods) {
+  const colors = ['#284234','#A54A1A','#1D9E75','#D4537E','#EF9F27'];
+  const datasets = top5names.map((name, i) => ({
+    label: name,
+    data: periods.map(p => {
+      const row = products.find(r => String(r[P_PERIOD]) === p && String(r[P_NAME]) === name);
+      return row ? n(row[P_QTY]) : null;
+    }),
+    borderColor: colors[i],
+    backgroundColor: 'transparent',
+    borderWidth: 2, pointRadius: 3, tension: 0.3, spanGaps: false,
+  }));
+
+  document.getElementById('trend-legend').innerHTML = top5names.map((n,i) =>
+    `<div class="leg-item"><div class="leg-dot" style="background:${colors[i]}"></div>${n.slice(0,12)}</div>`
+  ).join('');
+
+  new Chart(document.getElementById('trend-chart'), {
+    type: 'line',
+    data: { labels: periods.map(p => p.slice(5,10)), datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#b09a88', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(40,66,52,.06)' }, ticks: { color: '#b09a88', font: { size: 11 }, callback: v => v + ' 件' } }
+      }
+    }
+  });
+}
+
+function renderStores(rows) {
+  const periods = [...new Set(rows.map(r => String(r[S_PERIOD] || '')).filter(Boolean))].sort();
+  const latestP = periods[periods.length - 1];
+  const cur = rows.filter(r => String(r[S_PERIOD]) === latestP);
+
+  document.getElementById('store-grid').innerHTML = cur.map(r => {
+    const store = String(r[S_STORE] || '');
+    const wAch  = n(r[S_WACH]);
+    const mAch  = n(r[S_MACH]);
+    const barW  = Math.min(wAch * 100, 100).toFixed(1);
+    const color = STORE_COLORS[store] || '#888';
+    const acCls = achColor(wAch);
+    const isEC  = store === '官網';
+
+    return `
+    <div class="store-card">
+      <div class="store-hd">
+        <span class="store-name" style="color:${color}">${store}</span>
+        <span class="store-ach ${acCls}">${(wAch*100).toFixed(1)}%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${barW}%;background:${color}"></div></div>
+      <div class="store-meta">週：${fmtW(n(r[S_WREV]))} ／ 月累計：${fmtW(n(r[S_MTD]))}</div>
+      <div class="store-rates">
+        ${isEC ? `
+          <div class="rate-row"><span class="rate-lbl">訂單數</span><span>${fmt(n(r[18]))}</span></div>
+          <div class="rate-row"><span class="rate-lbl">月達成</span><span class="${achColor(mAch)}">${(mAch*100).toFixed(1)}%</span></div>
+        ` : `
+          <div class="rate-row"><span class="rate-lbl">來客數</span><span>${fmt(n(r[S_VISITORS]))}</span></div>
+          <div class="rate-row"><span class="rate-lbl">月達成</span><span class="${achColor(mAch)}">${(mAch*100).toFixed(1)}%</span></div>
+          <div class="rate-row"><span class="rate-lbl">成交率</span><span>${(n(r[S_CVR])*100).toFixed(1)}%</span></div>
+          <div class="rate-row"><span class="rate-lbl">客單價</span><span>$ ${fmt(n(r[S_AVG]))}</span></div>
+        `}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setBanner(type, msg) {
+  const el = document.getElementById('banner');
+  el.className = 'banner ' + type;
+  el.textContent = msg;
+}
+
+init();
+</script>
+</body>
+</html>
