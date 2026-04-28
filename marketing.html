@@ -39,9 +39,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .card-lbl{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
 .card-lbl::before{content:'';display:block;width:3px;height:12px;background:var(--rust);border-radius:2px}
 .card-badge{font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.kpi6{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.25rem}
 .kpi5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem}
 .kpi4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
 .kpi3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem}
+@media(max-width:1200px){.kpi6{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:1100px){.kpi5{grid-template-columns:repeat(3,1fr)}.kpi4{grid-template-columns:repeat(2,1fr)}.kpi3{grid-template-columns:1fr}}
 .kc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1.1rem;position:relative;overflow:hidden}
 .kc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kc-color,var(--green))}
@@ -97,9 +99,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 
 <div class="container">
 
-<!-- 開發中提示 -->
-<div class="mock-banner">
-  ⚠️ 目前顯示為示意數據（mock data），後端資料管道建置中。SEO 分頁為實際資料。
+<!-- 資料狀態 -->
+<div class="mock-banner" id="data-status-banner">
+  ⏳ 正在載入行銷數據...
 </div>
 
 <!-- ============ 流量總覽 ============ -->
@@ -108,7 +110,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     <div class="sec-title">本週關鍵指標</div>
     <div class="sec-date" id="overview-date">2026 / 04 / 21 – 04 / 27</div>
   </div>
-  <div class="kpi5" id="overview-kpi"></div>
+  <div class="kpi6" id="overview-kpi"></div>
 
   <div class="g2">
     <div class="card">
@@ -209,14 +211,15 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('en-GB');}
 setInterval(tick,1000);tick();
 
-// ===== Mock data（之後用 gviz/CSV 從「行銷儀錶板數據」工作表讀） =====
+// ===== 示意數據（後備值，真實資料載入後會被覆蓋）=====
 const MOCK = {
   overview: {
     sessions: { v: '23,840', delta: 8.4, vs: 'vs 上週', color: '#284234' },
     newUsers: { v: '14,210', delta: 12.1, vs: 'vs 上週', color: '#5a8a6e' },
     siteCVR: { v: '0.42%', delta: -0.03, vs: '目標 0.35%', color: '#A54A1A' },
     cartAbandon: { v: '68.3%', delta: -2.1, vs: 'vs 上週', color: '#8D5531' },
-    revenue: { v: 'NT$1.82M', delta: 5.7, vs: '本週累計', color: '#1a7a4a' }
+    revenue: { v: 'NT$1.82M', delta: 5.7, vs: '本週累計', color: '#1a7a4a' },
+    whereOringoPv: { v: '1,240', delta: 5.2, vs: '林果在哪裡 PV', color: '#CFA294' }
   },
   channels: [
     { name: 'Organic Search', sessions: 8210, purchases: 47, revenue: 412000, roas: '—' },
@@ -270,6 +273,91 @@ const MOCK = {
   }
 };
 
+// ===== 真實資料載入（gviz → 行銷儀錶板數據）=====
+const SHEET_ID='17hTgCpF0mBTHf3RcnDmRFrJMeLBn3nRdTMuG8l58QjY';
+let _gvizSeq=0;
+function loadGviz(sheetName){return new Promise((resolve,reject)=>{const cb='_gvizCb'+(++_gvizSeq);window[cb]=function(resp){delete window[cb];if(!resp||!resp.table){reject(new Error('no table'));return;}resolve((resp.table.rows||[]).map(r=>(r.c||[]).map(c=>c?c.v:null)));};const s=document.createElement('script');s.onerror=()=>reject(new Error('script load failed'));s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}&sheet=${encodeURIComponent(sheetName)}`;document.head.appendChild(s);});}
+
+function parseDate_(v){if(!v)return null;if(v instanceof Date)return v;if(typeof v==='string'){const m=v.match(/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/);if(m)return new Date(+m[1],+m[2],+m[3],+(m[4]||0),+(m[5]||0),+(m[6]||0));return new Date(v);}return new Date(v);}
+function fmtDatetime_(v){const d=parseDate_(v);if(!d||isNaN(d))return v||'—';return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+
+function processMarketingData(rows){
+  if(!rows||!rows.length)return null;
+  const n=v=>Number(v)||0;
+  const sum=(a,c)=>a.reduce((s,r)=>s+n(r[c]),0);
+  const avg=(a,c)=>a.length?sum(a,c)/a.length:0;
+  const pct=(a,b)=>b>0?Math.round((a-b)/b*1000)/10:null;
+  rows=rows.filter(r=>r[0]!==null&&r[0]!==undefined).sort((a,b)=>parseDate_(a[0])-parseDate_(b[0]));
+  if(!rows.length)return null;
+  const now=new Date(),mo=now.getMonth(),yr=now.getFullYear();
+  const tw=rows.slice(-7),lw=rows.length>=14?rows.slice(-14,-7):[];
+  const thisMonth=rows.filter(r=>{const d=parseDate_(r[0]);return d&&d.getFullYear()===yr&&d.getMonth()===mo;});
+  const revBase=thisMonth.length?thisMonth:tw;
+  const last14=rows.slice(-14);
+  // 流量
+  const twS=sum(tw,2),lwS=sum(lw,2),twN=sum(tw,3),lwN=sum(lw,3);
+  const twCvr=avg(tw,4),lwCvr=avg(lw,4),twCart=avg(tw,5),lwCart=avg(lw,5);
+  const twRev=sum(tw,23),lwRev=sum(lw,23);
+  // 廣告
+  const mSpend=sum(tw,26),mConv=sum(tw,29),gSpend=sum(tw,30),gConv=sum(tw,33);
+  const lmSpend=sum(lw,26),lgSpend=sum(lw,30),lmConv=sum(lw,29),lgConv=sum(lw,33);
+  const totalSpend=mSpend+gSpend,totalConv=mConv+gConv;
+  const lwTotalSpend=lmSpend+lgSpend,lwTotalConv=lmConv+lgConv;
+  const totalRoas=totalSpend>0?Math.round(totalConv/totalSpend*100)/100:0;
+  const lwTotalRoas=lwTotalSpend>0?Math.round(lwTotalConv/lwTotalSpend*100)/100:0;
+  const twOrders=sum(tw,24),lwOrders=sum(lw,24);
+  const twPaidSess=sum(tw,8)+sum(tw,10),lwPaidSess=sum(lw,8)+sum(lw,10);
+  const paidCvr=twPaidSess>0?Math.round(twOrders/twPaidSess*10000)/100:0;
+  const lwPaidCvr=lwPaidSess>0?Math.round(lwOrders/lwPaidSess*10000)/100:0;
+  const mRoas=mSpend>0?Math.round(mConv/mSpend*100)/100:0,mCtr=avg(tw,28);
+  const lmRoas=lmSpend>0?Math.round(lmConv/lmSpend*100)/100:0,lmCtr=avg(lw,28);
+  const gRoas=gSpend>0?Math.round(gConv/gSpend*100)/100:0,gCtr=avg(tw,32);
+  const lgRoas=lgSpend>0?Math.round(lgConv/lgSpend*100)/100:0,lgCtr=avg(lw,32);
+  // 廣告趨勢（近 4 週）
+  const aTrend={labels:[],spend:[],roas:[]};
+  for(let i=3;i>=0;i--){const chunk=rows.slice(Math.max(0,rows.length-(i+1)*7),rows.length-i*7);if(!chunk.length)continue;const cs=sum(chunk,26)+sum(chunk,30),cv=sum(chunk,29)+sum(chunk,33);aTrend.labels.push(i===0?'本週':'W-'+i);aTrend.spend.push(Math.round(cs/1000));aTrend.roas.push(cs>0?Math.round(cv/cs*100)/100:0);}
+  // 電商
+  const tmRev=sum(revBase,23),tmOrders=sum(revBase,24),tmAov=tmOrders>0?Math.round(tmRev/tmOrders):0,tmRefund=avg(revBase,25);
+  const EC_T=[125,115,115,100,100,90,90,90,100,115,115,125],moTarget=EC_T[mo]*10000,moAch=moTarget>0?Math.round(tmRev/moTarget*100):0;
+  const mixPS=sum(revBase,9),mixPSo=sum(revBase,11),mixOrg=Math.max(0,tmRev-mixPS-mixPSo);
+  // 社群
+  const ig0=sum(tw,14),ig1=sum(lw,14),fb0=sum(tw,17),fb1=sum(lw,17),ln0=sum(tw,20),ln1=sum(lw,20);
+  const igCvr=avg(tw.filter(r=>n(r[14])>0),15),fbCvr=avg(tw.filter(r=>n(r[17])>0),18),lnCvr=avg(tw.filter(r=>n(r[20])>0),21);
+  const lastRow=rows[rows.length-1],updatedAt=lastRow?lastRow[1]||'':'';
+  const ws=tw[0]?parseDate_(tw[0][0]):null,we=tw[tw.length-1]?parseDate_(tw[tw.length-1][0]):null;
+  const weekLabel=ws&&we?`${ws.getFullYear()} / ${String(ws.getMonth()+1).padStart(2,'0')} / ${String(ws.getDate()).padStart(2,'0')} – ${String(we.getMonth()+1).padStart(2,'0')} / ${String(we.getDate()).padStart(2,'0')}`:'';
+  return{
+    updatedAt,weekLabel,
+    overview:{sessions:{v:twS.toLocaleString(),delta:pct(twS,lwS),vs:'vs 上週',color:'#284234'},newUsers:{v:twN.toLocaleString(),delta:pct(twN,lwN),vs:'vs 上週',color:'#5a8a6e'},siteCVR:{v:twCvr.toFixed(2)+'%',delta:Math.round((twCvr-lwCvr)*100)/100,vs:'目標 0.35%',color:'#A54A1A'},cartAbandon:{v:twCart.toFixed(1)+'%',delta:Math.round((twCart-lwCart)*10)/10,vs:'vs 上週',color:'#8D5531'},revenue:{v:'NT$'+(twRev/10000).toFixed(1)+'M',delta:pct(twRev,lwRev),vs:'本週累計',color:'#1a7a4a'},whereOringoPv:{v:sum(tw,6).toLocaleString(),delta:pct(sum(tw,6),sum(lw,6)),vs:'林果在哪裡 PV',color:'#CFA294'}},
+    channels:[{name:'Organic Search',sessions:sum(tw,7),purchases:'—',revenue:0,roas:'—'},{name:'Paid Search',sessions:sum(tw,8),purchases:'—',revenue:sum(tw,9),roas:gSpend>0?Math.round(sum(tw,9)/gSpend*100)/100:'—'},{name:'Direct',sessions:sum(tw,12),purchases:'—',revenue:0,roas:'—'},{name:'Paid Social',sessions:sum(tw,10),purchases:'—',revenue:sum(tw,11),roas:mSpend>0?Math.round(mConv/mSpend*100)/100:'—'},{name:'Referral',sessions:sum(tw,13),purchases:'—',revenue:0,roas:'—'}].filter(c=>c.sessions>0).sort((a,b)=>b.sessions-a.sessions),
+    trafficTrend:{labels:last14.map(r=>{const d=parseDate_(r[0]);return d?(d.getMonth()+1)+'/'+(d.getDate()):'';}),data:last14.map(r=>n(r[2]))},
+    ads:{summary:{totalSpend:{v:'NT$'+Math.round(totalSpend/1000)+'K',delta:pct(totalSpend,lwTotalSpend),vs:'vs 上週',color:'#A54A1A'},totalROAS:{v:totalRoas.toFixed(2),delta:Math.round((totalRoas-lwTotalRoas)*100)/100,vs:'目標 4.5',color:totalRoas>=4.5?'#1a7a4a':'#b8860b'},paidCVR:{v:paidCvr.toFixed(2)+'%',delta:Math.round((paidCvr-lwPaidCvr)*100)/100,vs:'目標 0.59%',color:'#5a8a6e'},totalConv:{v:twOrders+' 筆',delta:pct(twOrders,lwOrders),vs:'vs 上週',color:'#284234'}},meta:{spend:{v:'NT$'+Math.round(mSpend/1000)+'K',delta:pct(mSpend,lmSpend),vs:'vs 上週',color:'#1877F2'},roas:{v:mRoas.toFixed(2),delta:Math.round((mRoas-lmRoas)*100)/100,vs:'目標 4.5',color:mRoas>=4.5?'#1a7a4a':'#b8860b'},ctr:{v:mCtr.toFixed(2)+'%',delta:Math.round((mCtr-lmCtr)*100)/100,vs:'vs 上週',color:'#A54A1A'}},google:{spend:{v:'NT$'+Math.round(gSpend/1000)+'K',delta:pct(gSpend,lgSpend),vs:'vs 上週',color:'#4285F4'},roas:{v:gRoas.toFixed(2),delta:Math.round((gRoas-lgRoas)*100)/100,vs:'目標 4.5',color:gRoas>=4.5?'#1a7a4a':'#b8860b'},ctr:{v:gCtr.toFixed(2)+'%',delta:Math.round((gCtr-lgCtr)*100)/100,vs:'vs 上週',color:'#A54A1A'}},trend:{labels:aTrend.labels,spend:aTrend.spend,roas:aTrend.roas}},
+    revenue:{kpi:{monthRev:{v:'NT$'+(tmRev/10000).toFixed(1)+'M',delta:moAch,vs:'月目標達成 '+moAch+'%',color:'#284234'},orders:{v:String(tmOrders),delta:null,vs:'本月累計',color:'#5a8a6e'},aov:{v:'NT$'+tmAov.toLocaleString(),delta:null,vs:'平均客單',color:'#A54A1A'},returnRate:{v:tmRefund.toFixed(1)+'%',delta:null,vs:'退貨率',color:'#8D5531'}},daily:{labels:revBase.map(r=>{const d=parseDate_(r[0]);return d?d.getDate()+'日':'';}),ec:revBase.map(r=>Math.round(n(r[23])/10000*10)/10),pos:revBase.map(()=>0)},mix:[{name:'付費搜尋',val:Math.round(mixPS/10000)},{name:'付費社群',val:Math.round(mixPSo/10000)},{name:'自然/其他',val:Math.round(mixOrg/10000)}].filter(m=>m.val>0)},
+    social:{kpi:{ig:{v:ig0.toLocaleString(),delta:pct(ig0,ig1),vs:'sessions / 本週',color:'#E1306C'},fb:{v:fb0.toLocaleString(),delta:pct(fb0,fb1),vs:'sessions / 本週',color:'#1877F2'},line:{v:ln0.toLocaleString(),delta:pct(ln0,ln1),vs:'sessions / 本週',color:'#06C755'}},table:[{name:'IG (instagram)',sessions:ig0,cvr:igCvr.toFixed(3)+'%',revenue:sum(tw,16),color:'#E1306C'},{name:'FB (facebook)',sessions:fb0,cvr:fbCvr.toFixed(3)+'%',revenue:sum(tw,19),color:'#1877F2'},{name:'LINE (line.me)',sessions:ln0,cvr:lnCvr.toFixed(3)+'%',revenue:sum(tw,22),color:'#06C755'}]}
+  };
+}
+
+async function loadData(){
+  const banner=document.getElementById('data-status-banner');
+  try{
+    const rows=await loadGviz('行銷儀錶板數據');
+    if(!rows||!rows.length){
+      banner.innerHTML='⚠️ 「行銷儀錶板數據」工作表尚無資料。請在 GAS 執行 <b>initMarketingSheet()</b>，再執行 <b>testPullDaily()</b>。目前顯示示意數據。';
+      return;
+    }
+    const d=processMarketingData(rows);
+    if(!d){banner.innerHTML='⚠️ 資料格式異常，顯示示意數據。';return;}
+    Object.assign(MOCK,{overview:d.overview,channels:d.channels,trafficTrend:d.trafficTrend,ads:d.ads,revenue:d.revenue,social:d.social});
+    banner.style.cssText='background:#e8f5e9;border-color:#4caf50;color:#2e7d32;border-radius:8px;padding:10px 16px;margin-bottom:1.25rem;display:flex;align-items:center;gap:12px;font-size:11px;font-family:\'Space Mono\',monospace';
+    banner.innerHTML='✅ 即時資料｜最後更新：'+fmtDatetime_(d.updatedAt);
+    if(d.weekLabel)document.getElementById('overview-date').textContent=d.weekLabel;
+    document.querySelector('.data-tag').textContent='LIVE DATA';
+  }catch(e){
+    console.error('loadData',e);
+    banner.innerHTML='⚠️ 資料載入失敗（'+e.message+'）。顯示示意數據。';
+  }
+}
+
 // ===== Renderers =====
 function fmt(n){return typeof n==='number'?n.toLocaleString():n}
 function deltaHTML(d){if(d===null||d===undefined)return'';const cls=d>0?'pos':d<0?'neg':'neu';const sign=d>0?'▲ +':d<0?'▼ ':'';return`<span class="delta ${cls}">${sign}${typeof d==='number'?Math.abs(d).toFixed(1)+'%':d}</span>`}
@@ -279,7 +367,7 @@ function renderKPIs(elId, items){
 }
 
 // ----- Overview -----
-const OV_LABELS={sessions:'工作階段',newUsers:'新用戶',siteCVR:'整站 CVR',cartAbandon:'購物車放棄率',revenue:'本週營收'};
+const OV_LABELS={sessions:'工作階段',newUsers:'新用戶',siteCVR:'整站 CVR',cartAbandon:'購物車放棄率',revenue:'本週營收',whereOringoPv:'林果在哪裡 PV'};
 function renderOverview(){
   const remapped={};Object.keys(MOCK.overview).forEach(k=>remapped[OV_LABELS[k]||k]=MOCK.overview[k]);
   renderKPIs('overview-kpi',remapped);
@@ -344,7 +432,7 @@ function switchTab(tab,btn){
     RENDERED[tab]=true;
   }
 }
-renderOverview();RENDERED.overview=true;
+loadData().then(()=>{renderOverview();RENDERED.overview=true;});
 </script>
 </body>
 </html>
