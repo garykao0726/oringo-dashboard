@@ -4,21 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>林果良品｜財務報表</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<!-- ════════════════════════════════════════════════════
-     ★ 設定區 — 部署前請填寫以下兩項
-     ════════════════════════════════════════════════════
-  1. GOOGLE_CLIENT_ID
-     → Google Cloud Console > API & Services > 憑證
-     → 建立「OAuth 2.0 用戶端 ID」(類型：網路應用程式)
-     → 已授權 JavaScript 來源填入：https://garykao0726.github.io
-     → 將產生的 Client ID 貼到下方
-
-  2. ALLOWED_EMAILS
-     → 可瀏覽財務報表的 Google 帳號 email 清單
-     ════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════
+     設定區 — 請勿修改以下以外的常數
+     ════════════════════════════════════════════ -->
 <script>
 const GOOGLE_CLIENT_ID = '901817647731-nsjtqdurcnp6mf40mtltkmn01me3ss93.apps.googleusercontent.com';
 const ALLOWED_EMAILS   = [
@@ -28,10 +19,28 @@ const ALLOWED_EMAILS   = [
   'rintseng@oringoshoes.com',
   'qianwen@oringoshoes.com',
 ];
+const MASTER_SHEET_ID  = '1mpguyk-fRFQtD3JSs5MmVzEdtHHFm5SxO77N8lk3mr4';
+const DATA_TAB         = '財務彙整';
+
+/* 與 GAS 完全同步 */
+const STORES = ['中山','松菸','東門','台中','電商'];
+const STORE_COLORS = {'中山':'#378ADD','松菸':'#1D9E75','東門':'#D4537E','台中':'#EF9F27','電商':'#888780'};
+const MONTHLY_TARGETS = {
+  '中山':[180,170,170,150,140,125,125,125,140,170,170,180],
+  '松菸':[160,150,150,140,120,110,110,110,120,140,150,160],
+  '東門':[140,130,130,120,110,100,100,100,120,130,130,140],
+  '台中':[130,120,120,120,110, 95, 95, 95,110,120,120,130],
+  '電商':[125,115,115,100,100, 90, 90, 90,100,115,115,125],
+};
+const ANNUAL_REV_TARGETS = {'中山':18450000,'松菸':16200000,'東門':14500000,'台中':13650000,'電商':12800000};
+const ANNUAL_NI_TARGETS  = {'中山':18450000*.08,'松菸':16200000*.08,'東門':14500000*.08,'台中':13650000*.08,'電商':12800000*.08};
+const COMPANY_REV_TARGET = 69000000;
+const COMPANY_NI_TARGET  = 8000000;
+const COMPANY_MKT_BUDGET = 4140000;
 </script>
 
 <style>
-:root{--green:#284234;--dark:#002721;--sand:#E2CEB9;--sand-light:#F5EDE3;--rust:#A54A1A;--gray-pink:#CFA294;--brown:#8D5531;--bg:#F5EDE3;--surface:#ffffff;--surface2:#FAF5EF;--border:rgba(40,66,52,0.10);--border2:rgba(40,66,52,0.22);--text:#284234;--text-sub:#8D5531;--text-muted:#b09a88;--positive:#1a7a4a;--negative:#c0392b}
+:root{--green:#284234;--dark:#002721;--sand:#E2CEB9;--sand-light:#F5EDE3;--rust:#A54A1A;--gray-pink:#CFA294;--brown:#8D5531;--bg:#F5EDE3;--surface:#fff;--surface2:#FAF5EF;--border:rgba(40,66,52,.10);--border2:rgba(40,66,52,.22);--text:#284234;--text-sub:#8D5531;--text-muted:#b09a88;--pos:#1a7a4a;--neg:#c0392b;--warn:#b07d12}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh}
 
@@ -41,59 +50,115 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .brand-name{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.1em;color:var(--sand)}
 .brand-sep{width:1px;height:16px;background:rgba(226,206,185,.3)}
 .brand-sub{font-size:10px;color:var(--gray-pink);font-family:'Space Mono',monospace}
-.hdr-r{display:flex;align-items:center;gap:14px}
+.hdr-r{display:flex;align-items:center;gap:10px}
 .back-link{font-family:'Space Mono',monospace;font-size:11px;color:var(--gray-pink);text-decoration:none;border:1px solid rgba(226,206,185,.25);padding:3px 10px;border-radius:20px;transition:all .15s}
 .back-link:hover{color:var(--sand);border-color:var(--sand)}
+.lock-badge{font-size:10px;font-family:'Space Mono',monospace;color:#e8a87c;letter-spacing:.05em;padding:3px 10px;border:1px solid rgba(232,168,124,.3);border-radius:20px}
 .user-chip{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 6px;border-radius:20px;border:1px solid rgba(226,206,185,.25);cursor:pointer;transition:all .15s}
 .user-chip:hover{border-color:rgba(226,206,185,.5)}
 .user-avatar{width:24px;height:24px;border-radius:50%;object-fit:cover}
 .user-name{font-family:'Space Mono',monospace;font-size:10px;color:var(--gray-pink)}
-.lock-badge{font-size:10px;font-family:'Space Mono',monospace;color:#e8a87c;letter-spacing:.05em;padding:3px 10px;border:1px solid rgba(232,168,124,.3);border-radius:20px}
 
 /* ── Auth gate ── */
-#auth-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 54px);gap:20px;padding:40px}
-.gate-icon{font-size:48px;margin-bottom:8px}
-.gate-title{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--green);letter-spacing:-.01em;text-align:center}
-.gate-sub{font-size:13px;color:var(--text-muted);text-align:center;line-height:1.8;max-width:360px}
-#g_id_signin{margin-top:8px}
-.denied-box{background:#fff3f0;border:1px solid rgba(192,57,43,.18);border-radius:12px;padding:20px 28px;text-align:center;max-width:360px}
-.denied-box strong{color:var(--negative);font-size:13px;display:block;margin-bottom:6px}
+#auth-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 54px);gap:18px;padding:40px}
+.gate-icon{font-size:48px}
+.gate-title{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--green);text-align:center}
+.gate-sub{font-size:13px;color:var(--text-muted);text-align:center;line-height:1.9;max-width:360px}
+.signin-btn{display:flex;align-items:center;gap:10px;padding:11px 22px;border-radius:8px;border:1.5px solid var(--border2);background:#fff;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--text);transition:all .15s}
+.signin-btn:hover{border-color:var(--green);box-shadow:0 2px 8px rgba(40,66,52,.12)}
+.signin-btn svg{width:20px;height:20px;flex-shrink:0}
+.denied-box{background:#fff3f0;border:1px solid rgba(192,57,43,.18);border-radius:12px;padding:18px 24px;text-align:center;max-width:360px;display:none}
+.denied-box strong{color:var(--neg);display:block;margin-bottom:6px}
 .denied-box span{font-size:12px;color:var(--text-muted)}
 
 /* ── Main content ── */
 #main-content{display:none}
-.container{max-width:1400px;margin:0 auto;padding:1.75rem 2rem}
-.page-title{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--green);margin-bottom:4px}
-.page-sub{font-size:12px;color:var(--text-muted);margin-bottom:1.5rem;font-family:'Space Mono',monospace}
+.container{max-width:1280px;margin:0 auto;padding:1.75rem 2rem}
+.page-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.5rem}
+.page-title{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--green)}
+.data-status{font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace}
+.sensitive-notice{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);margin-bottom:1.25rem;padding:9px 14px;background:rgba(165,74,26,.05);border:1px solid rgba(165,74,26,.12);border-radius:8px}
+
+/* ── Section title ── */
+.sec{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin:1.5rem 0 .75rem;font-family:'Space Mono',monospace}
 
 /* ── KPI grid ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
-.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;position:relative}
-.kpi-label{font-size:11px;color:var(--text-muted);margin-bottom:8px;font-family:'Space Mono',monospace;letter-spacing:.05em}
-.kpi-val{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--green);letter-spacing:-.02em}
-.kpi-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
-.kpi-delta{font-size:11px;font-weight:700;margin-top:6px}
-.kpi-delta.pos{color:var(--positive)}.kpi-delta.neg{color:var(--negative)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.kpi-label{font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:'Space Mono',monospace;letter-spacing:.05em}
+.kpi-val{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;letter-spacing:-.02em}
+.kpi-sub{font-size:11px;color:var(--text-muted);margin-top:5px}
+.kpi-delta{font-size:11px;font-weight:700;margin-top:4px}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.warn{color:var(--warn)}
 
-/* ── Section card ── */
-.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:1.25rem}
-.card-hd{font-size:13px;font-weight:700;color:var(--green);margin-bottom:16px;font-family:'Space Mono',monospace}
+/* ── Store grid ── */
+.store-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.875rem;margin-bottom:1.25rem}
+.store-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.store-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.store-name{font-family:'Space Mono',monospace;font-size:13px;font-weight:700}
+.store-ach{font-size:18px;font-weight:700;font-family:'Space Mono',monospace}
+.bar-track{height:4px;background:#e8e2d8;border-radius:2px;margin-bottom:6px}
+.bar-fill{height:4px;border-radius:2px}
+.store-meta{font-size:11px;color:var(--text-muted);margin-bottom:10px}
+.store-rates{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:8px}
+.rate-row{display:flex;justify-content:space-between;font-size:11px}
+.rate-lbl{color:var(--text-muted)}
+.store-foot{display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);padding-top:8px;border-top:1px solid var(--border)}
+.tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;font-family:'Space Mono',monospace;font-weight:700;margin-left:4px}
+.tag-ok{background:#eaf3de;color:#2e6b10}.tag-warn{background:#faeeda;color:#8a530a}.tag-bad{background:#fcebeb;color:#a32d2d}
+
+/* ── Chart card ── */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:1.25rem}
+.chart-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)}
+.leg-dot{width:10px;height:10px;border-radius:2px}
 .chart-wrap{position:relative;height:260px}
 
+/* ── Expense grid ── */
+.exp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.875rem;margin-bottom:1.25rem}
+.exp-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.exp-label{font-size:10px;color:var(--text-muted);margin-bottom:5px;font-family:'Space Mono',monospace;letter-spacing:.04em}
+.exp-val{font-size:22px;font-weight:700;font-family:'Space Mono',monospace;margin-bottom:5px}
+.exp-sub{font-size:11px;color:var(--text-muted)}
+
+/* ── Anomaly list ── */
+.anomaly-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem}
+.anomaly-item{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;font-size:12px}
+.anomaly-red{background:rgba(163,45,45,.06);border:1px solid rgba(163,45,45,.18);color:#a32d2d}
+.anomaly-yellow{background:rgba(186,117,23,.06);border:1px solid rgba(186,117,23,.18);color:#8a530a}
+.anomaly-none{padding:9px 14px;font-size:12px;color:var(--pos);background:rgba(26,122,74,.05);border:1px solid rgba(26,122,74,.15);border-radius:8px}
+
 /* ── Table ── */
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;padding:8px 12px;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.05em;border-bottom:1px solid var(--border2)}
-td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text)}
-tr:last-child td{border-bottom:none}
-.num{text-align:right;font-family:'Space Mono',monospace}
-.pos{color:var(--positive)}.neg{color:var(--negative)}
+.tbl-wrap{overflow-x:auto;margin-bottom:1.25rem}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.tbl th{padding:9px 12px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.05em;color:var(--text-muted);text-align:left;background:var(--surface2);border-bottom:1px solid var(--border2)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--border)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .num{text-align:right;font-family:'Space Mono',monospace}
+.tbl .ym-cell{font-family:'Space Mono',monospace;font-weight:700;font-size:11px}
+.tbl .store-cell{font-weight:500}
 
-/* ── Grid layouts ── */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
-@media(max-width:700px){.g2,.kpi-grid{grid-template-columns:1fr}}
+/* ── Report links ── */
+.report-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;margin-bottom:2rem}
+.report-link{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;transition:all .15s}
+.report-link:hover{border-color:var(--border2);transform:translateY(-1px)}
+.report-link .latest-tag{font-size:9px;background:rgba(26,122,74,.1);color:var(--pos);padding:2px 7px;border-radius:3px}
 
-/* ── Watermark ── */
-.sensitive-notice{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);margin-bottom:1.25rem;padding:10px 14px;background:rgba(165,74,26,.05);border:1px solid rgba(165,74,26,.12);border-radius:8px}
+/* ── Loading state ── */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;color:var(--text-muted);font-size:13px}
+.spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .store-grid{grid-template-columns:repeat(2,1fr)}
+  .exp-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .store-grid{grid-template-columns:1fr 1fr}
+  .container{padding:1rem}
+}
 </style>
 </head>
 <body>
@@ -114,109 +179,137 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- ══ Auth gate (shown before sign-in) ══ -->
+<!-- ══ Auth gate ══ -->
 <div id="auth-gate">
   <div class="gate-icon">🔒</div>
   <div class="gate-title">財務報表 — 限制存取</div>
-  <div class="gate-sub">此頁面包含公司淨利與財務資料，僅限授權主管檢視。<br>請使用公司 Google 帳號登入驗證身份。</div>
-  <div id="g_id_signin"></div>
-  <div id="denied-msg" class="denied-box" style="display:none">
+  <div class="gate-sub">此頁面包含公司淨利與財務資料，僅限授權主管檢視。<br>請使用公司 Google 帳號登入，系統將驗證存取權限。</div>
+  <button class="signin-btn" id="signin-btn">
+    <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+    使用 Google 帳號登入
+  </button>
+  <div id="loading-auth" style="display:none;color:var(--text-muted);font-size:12px">驗證中…</div>
+  <div class="denied-box" id="denied-msg">
     <strong>存取遭拒</strong>
     <span id="denied-email"></span><br>
-    <span>此帳號未獲授權。請聯絡系統管理員。</span>
+    <span>此帳號未獲授權，請聯絡系統管理員。</span>
   </div>
 </div>
 
-<!-- ══ Main content (shown after auth) ══ -->
+<!-- ══ Main content ══ -->
 <div id="main-content">
   <div class="container">
-    <div class="page-title">財務報表</div>
-    <div class="page-sub" id="finance-subtitle">財務資料 · 限主管檢視</div>
+
+    <div class="page-hd">
+      <div class="page-title">財務報表</div>
+      <div class="data-status" id="data-status">載入中…</div>
+    </div>
 
     <div class="sensitive-notice">
-      🔒 本頁資料屬機密，請勿截圖或轉發。目前登入帳號：<strong id="logged-email"></strong>
+      🔒 本頁資料屬機密，請勿截圖或轉發。目前登入帳號：<strong id="logged-email" style="margin-left:4px"></strong>
     </div>
 
-    <!-- KPI Overview -->
-    <div class="kpi-grid" id="kpi-grid">
-      <!-- populated by JS -->
-    </div>
+    <div id="loading-data" class="loading"><div class="spin"></div>從 Google Sheets 讀取財務資料…</div>
 
-    <div class="g2">
-      <div class="card">
-        <div class="card-hd">月度淨利趨勢</div>
-        <div class="chart-wrap"><canvas id="profit-chart"></canvas></div>
+    <div id="finance-body" style="display:none">
+
+      <!-- KPIs -->
+      <div class="kpi-grid" id="kpi-grid"></div>
+
+      <!-- Per-store cards -->
+      <div class="sec">各門市當月績效</div>
+      <div class="store-grid" id="store-grid"></div>
+
+      <!-- Revenue trend -->
+      <div class="sec">月營收趨勢（萬元）</div>
+      <div class="chart-card">
+        <div class="chart-legend" id="rev-legend"></div>
+        <div class="chart-wrap"><canvas id="rev-chart"></canvas></div>
       </div>
-      <div class="card">
-        <div class="card-hd">費用結構佔比</div>
-        <div class="chart-wrap"><canvas id="expense-chart"></canvas></div>
-      </div>
-    </div>
 
-    <div class="card">
-      <div class="card-hd">月度財務摘要</div>
-      <table id="finance-table">
-        <thead>
-          <tr>
-            <th>月份</th>
-            <th class="num">營收</th>
-            <th class="num">毛利</th>
-            <th class="num">毛利率</th>
-            <th class="num">營業費用</th>
-            <th class="num">淨利</th>
-            <th class="num">淨利率</th>
-          </tr>
-        </thead>
-        <tbody id="finance-tbody"></tbody>
-      </table>
-    </div>
+      <!-- NP rate trend -->
+      <div class="sec">淨利率走勢（%）</div>
+      <div class="chart-card">
+        <div class="chart-legend" id="np-legend"></div>
+        <div class="chart-wrap" style="height:220px"><canvas id="np-chart"></canvas></div>
+      </div>
+
+      <!-- Expense rates -->
+      <div class="sec">費用率監控（當月加總）</div>
+      <div class="exp-grid" id="exp-grid"></div>
+
+      <!-- Anomaly alerts -->
+      <div class="sec">異常警示</div>
+      <div class="anomaly-list" id="anomaly-list"></div>
+
+      <!-- Monthly summary table -->
+      <div class="sec">月度財務明細（近 18 個月）</div>
+      <div class="tbl-wrap">
+        <table class="tbl" id="summary-table">
+          <thead>
+            <tr>
+              <th>年月</th><th>門市</th>
+              <th class="num">營收</th><th class="num">毛利率</th>
+              <th class="num">薪資率</th><th class="num">行銷率</th>
+              <th class="num">淨利</th><th class="num">淨利率</th>
+              <th class="num">達成率</th><th class="num">YOY營收</th>
+            </tr>
+          </thead>
+          <tbody id="summary-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Monthly report archive -->
+      <div class="sec">月報存檔</div>
+      <div class="report-grid" id="report-grid"></div>
+
+    </div><!-- /finance-body -->
   </div>
 </div>
 
-<!-- Google Identity Services -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-/* ── Auth ── */
+/* ════════════════════════════════════════════════════════
+   AUTH
+   ════════════════════════════════════════════════════════ */
+let accessToken = null;
 let currentUser = null;
+let tokenClient;
 
-window.onload = function() {
-  if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-    document.getElementById('auth-gate').innerHTML = `
-      <div class="gate-icon">⚙️</div>
-      <div class="gate-title">尚未設定 OAuth Client ID</div>
-      <div class="gate-sub" style="max-width:480px">
-        請在 finance.html 頂端的設定區填入 <code>GOOGLE_CLIENT_ID</code>。<br><br>
-        步驟：<br>
-        1. 開啟 Google Cloud Console → API & Services → 憑證<br>
-        2. 建立 OAuth 2.0 用戶端 ID（類型：網路應用程式）<br>
-        3. 已授權 JS 來源填入 <code>https://garykao0726.github.io</code><br>
-        4. 將 Client ID 貼回 finance.html
-      </div>`;
+window.addEventListener('load', () => {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'openid email profile https://www.googleapis.com/auth/spreadsheets.readonly',
+    callback: handleTokenResponse,
+  });
+  document.getElementById('signin-btn').addEventListener('click', () => {
+    document.getElementById('signin-btn').style.display = 'none';
+    document.getElementById('loading-auth').style.display = 'block';
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
+  });
+});
+
+async function handleTokenResponse(response) {
+  document.getElementById('loading-auth').style.display = 'none';
+  if (response.error) {
+    document.getElementById('signin-btn').style.display = 'flex';
     return;
   }
+  accessToken = response.access_token;
 
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleCredential,
-    auto_select: true,
-  });
-  google.accounts.id.renderButton(
-    document.getElementById('g_id_signin'),
-    { theme: 'outline', size: 'large', text: 'signin_with', locale: 'zh-TW' }
-  );
-  google.accounts.id.prompt();
-};
+  /* verify identity */
+  const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: 'Bearer ' + accessToken }
+  }).then(r => r.json());
 
-function handleCredential(response) {
-  const payload = JSON.parse(atob(response.credential.split('.')[1]));
-  const email = payload.email;
-  currentUser = payload;
-
-  if (ALLOWED_EMAILS.map(e => e.toLowerCase()).includes(email.toLowerCase())) {
-    grantAccess(payload);
+  currentUser = info;
+  if (ALLOWED_EMAILS.map(e => e.toLowerCase()).includes((info.email || '').toLowerCase())) {
+    grantAccess(info);
+    loadAndRender();
   } else {
+    document.getElementById('denied-email').textContent = info.email;
     document.getElementById('denied-msg').style.display = 'block';
-    document.getElementById('denied-email').textContent = email;
+    document.getElementById('signin-btn').style.display = 'flex';
   }
 }
 
@@ -227,114 +320,323 @@ function grantAccess(user) {
   document.getElementById('user-avatar').src = user.picture || '';
   document.getElementById('user-name').textContent = user.name || user.email;
   document.getElementById('logged-email').textContent = user.email;
-  renderFinance();
 }
 
 function signOut() {
-  google.accounts.id.disableAutoSelect();
-  currentUser = null;
+  google.accounts.oauth2.revoke(accessToken, () => {});
+  accessToken = null; currentUser = null;
   document.getElementById('auth-gate').style.display = 'flex';
   document.getElementById('main-content').style.display = 'none';
   document.getElementById('user-chip').style.display = 'none';
+  document.getElementById('signin-btn').style.display = 'flex';
   document.getElementById('denied-msg').style.display = 'none';
 }
 
-/* ══════════════════════════════════════════════════════════════
-   財務資料區
-   TODO: 將下方 MOCK 數據替換為真實 Google Sheets gviz 資料
-   Sheet 結構建議：月份, 營收, 進貨成本, 毛利, 毛利率,
-                   租金, 薪資, 行銷費用, 其他費用, 淨利, 淨利率
-   ══════════════════════════════════════════════════════════════ */
-const FINANCE_MOCK = [
-  { month:'2025-10', revenue:2180000, cogs:1090000, gross:1090000, grossPct:.50, opex:820000, net:270000, netPct:.124 },
-  { month:'2025-11', revenue:2340000, cogs:1170000, gross:1170000, grossPct:.50, opex:830000, net:340000, netPct:.145 },
-  { month:'2025-12', revenue:2820000, cogs:1410000, gross:1410000, grossPct:.50, opex:860000, net:550000, netPct:.195 },
-  { month:'2026-01', revenue:1980000, cogs: 990000, gross: 990000, grossPct:.50, opex:810000, net:180000, netPct:.091 },
-  { month:'2026-02', revenue:2060000, cogs:1030000, gross:1030000, grossPct:.50, opex:815000, net:215000, netPct:.104 },
-  { month:'2026-03', revenue:2250000, cogs:1125000, gross:1125000, grossPct:.50, opex:840000, net:285000, netPct:.127 },
-];
+/* ════════════════════════════════════════════════════════
+   DATA LOADING  (Sheets API v4 — sheet stays private)
+   ════════════════════════════════════════════════════════ */
+async function loadAndRender() {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${MASTER_SHEET_ID}/values/${encodeURIComponent(DATA_TAB)}`;
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    const raw = json.values || [];
+    processAndRender(raw);
+  } catch(e) {
+    document.getElementById('loading-data').innerHTML =
+      '<span style="color:var(--neg)">⚠ 資料讀取失敗：' + e.message + '。請確認 Google Sheets 已共用給此帳號。</span>';
+  }
+}
 
-const EXPENSE_MOCK = { 租金:280000, 薪資:380000, 行銷費用:120000, 其他費用:60000 };
+/* ════════════════════════════════════════════════════════
+   DATA PROCESSING
+   ════════════════════════════════════════════════════════ */
+function n(v) { return parseFloat(String(v).replace(/,/g,'')) || 0; }
+function pct(a,b) { return b !== 0 ? a/b*100 : 0; }
+function fmt(v) { return '$ ' + Math.round(v).toLocaleString('zh-TW'); }
+function fmtW(v) { return (Math.round(v/1000)/10).toFixed(1) + '萬'; }
+function fmtPct(v) { return n(v).toFixed(1) + '%'; }
+function chg(v) { return (v >= 0 ? '▲ ' : '▼ ') + Math.abs(v).toFixed(1) + '%'; }
 
-function fmt(n){ return '$ '+n.toLocaleString('zh-TW') }
-function pct(n){ return (n*100).toFixed(1)+'%' }
-function deltaClass(n){ return n>=0?'pos':'neg' }
+/* Color helpers matching GAS thresholds */
+function achColor(v) { return v >= 100 ? 'pos' : v >= 85 ? 'warn' : 'neg'; }
+function npColor(v)  { return v >= 8 ? 'pos' : v >= 5 ? 'warn' : 'neg'; }
+function salColor(v) { return v >= 18 ? 'neg' : v >= 15 ? 'warn' : 'pos'; }
+function mktColor(v) { return v >= 8 ? 'neg' : v >= 6 ? 'warn' : 'pos'; }
+function cSSColor(cls) {
+  return cls === 'pos' ? 'var(--pos)' : cls === 'neg' ? 'var(--neg)' : 'var(--warn)';
+}
+function tagClass(cls) {
+  return cls === 'pos' ? 'tag-ok' : cls === 'neg' ? 'tag-bad' : 'tag-warn';
+}
 
-function renderFinance() {
-  /* KPI cards */
-  const last = FINANCE_MOCK[FINANCE_MOCK.length-1];
-  const prev = FINANCE_MOCK[FINANCE_MOCK.length-2];
-  const ytd  = FINANCE_MOCK.filter(r=>r.month.startsWith('2026'));
-  const ytdRev = ytd.reduce((s,r)=>s+r.revenue,0);
-  const ytdNet = ytd.reduce((s,r)=>s+r.net,0);
-  const revDelta = ((last.revenue - prev.revenue)/prev.revenue);
-  const netDelta = ((last.net - prev.net)/prev.net);
+function processAndRender(raw) {
+  /* Skip header row (index 0) */
+  const rows = raw.slice(1).map(r => ({
+    ym:    String(r[0]  || '').trim(),  /* e.g. "2025/01" */
+    store: String(r[1]  || '').trim(),
+    rev:   n(r[2]),  cogs: n(r[3]),  gp:  n(r[4]),   gpPct:  n(r[5]),
+    wage:  n(r[6]),  wagePct: n(r[7]), rent: n(r[8]),
+    mkt:   n(r[9]),  mktPct: n(r[10]),
+    op:    n(r[11]), opPct:  n(r[12]),
+    ni:    n(r[13]), niPct:  n(r[14]),
+    tgt:   n(r[15]), achPct: n(r[16]),
+    yoyRev: r[17] !== undefined ? n(r[17]) : null,
+    yoyNi:  r[18] !== undefined ? n(r[18]) : null,
+    momRev: r[19] !== undefined ? n(r[19]) : null,
+    momNi:  r[20] !== undefined ? n(r[20]) : null,
+  })).filter(r => r.ym && r.store);
+
+  const allYM = [...new Set(rows.map(r => r.ym))].sort();
+  const latestYM = allYM[allYM.length - 1];
+  const latestMonth = parseInt(latestYM.split('/')[1]) - 1;  /* 0-indexed */
+  const latestYear  = latestYM.split('/')[0];
+
+  const curRows = rows.filter(r => r.ym === latestYM);
+  const ytdRows = rows.filter(r => r.ym.startsWith(latestYear));
+
+  /* Update status */
+  document.getElementById('data-status').textContent = '資料截至 ' + latestYM;
+  document.getElementById('loading-data').style.display = 'none';
+  document.getElementById('finance-body').style.display = 'block';
+
+  /* ── KPIs ── */
+  const totalRev    = curRows.reduce((s,r) => s + r.rev, 0);
+  const totalNI     = curRows.reduce((s,r) => s + r.ni, 0);
+  const totalWage   = curRows.reduce((s,r) => s + r.wage, 0);
+  const totalCogs   = curRows.reduce((s,r) => s + r.cogs, 0);
+  const totalMkt    = curRows.reduce((s,r) => s + r.mkt, 0);
+  const totalTarget = STORES.reduce((s,st) => s + MONTHLY_TARGETS[st][latestMonth]*10000, 0);
+  const totalAch    = pct(totalRev, totalTarget);
+  const totalNP     = pct(totalNI, totalRev);
+
+  const ytdRev = ytdRows.reduce((s,r) => s + r.rev, 0);
+  const ytdNI  = ytdRows.reduce((s,r) => s + r.ni, 0);
 
   const kpis = [
-    { label:'本月營收', val:fmt(last.revenue), delta:(revDelta>=0?'▲':'▼')+' '+pct(Math.abs(revDelta))+' vs 上月', cls:deltaClass(revDelta) },
-    { label:'本月淨利', val:fmt(last.net),     delta:(netDelta>=0?'▲':'▼')+' '+pct(Math.abs(netDelta))+' vs 上月', cls:deltaClass(netDelta) },
-    { label:'本月毛利率', val:pct(last.grossPct), delta:'', cls:'' },
-    { label:'本月淨利率', val:pct(last.netPct),   delta:'', cls:'' },
-    { label:'年初至今營收', val:fmt(ytdRev), delta:'2026 年迄今', cls:'' },
-    { label:'年初至今淨利', val:fmt(ytdNet), delta:'2026 年迄今', cls:'' },
+    { label:'五通路當月營收', val:fmtW(totalRev), sub:'目標 '+fmtW(totalTarget), delta:chg(totalAch-100)+' vs 目標', dCls:achColor(totalAch) },
+    { label:'五通路達成率',   val:fmtPct(totalAch), sub:'目標 100%', delta:'', dCls:achColor(totalAch) },
+    { label:'全公司淨利率',   val:fmtPct(totalNP), sub:'目標 8%', delta:'', dCls:npColor(totalNP) },
+    { label:'年初至今淨利',   val:fmt(ytdNI), sub:latestYear+' YTD', delta:'年度進度 '+fmtPct(pct(ytdNI,COMPANY_NI_TARGET)), dCls:npColor(pct(ytdNI,COMPANY_NI_TARGET)) },
   ];
-  document.getElementById('kpi-grid').innerHTML = kpis.map(k=>`
+  document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
     <div class="kpi">
       <div class="kpi-label">${k.label}</div>
-      <div class="kpi-val">${k.val}</div>
-      ${k.delta?`<div class="kpi-delta ${k.cls}">${k.delta}</div>`:''}
+      <div class="kpi-val ${k.dCls}">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+      ${k.delta ? `<div class="kpi-delta ${k.dCls}">${k.delta}</div>` : ''}
     </div>`).join('');
 
-  /* Table */
-  document.getElementById('finance-tbody').innerHTML = [...FINANCE_MOCK].reverse().map(r=>`
-    <tr>
-      <td>${r.month}</td>
-      <td class="num">${fmt(r.revenue)}</td>
-      <td class="num">${fmt(r.gross)}</td>
-      <td class="num">${pct(r.grossPct)}</td>
-      <td class="num">${fmt(r.opex)}</td>
-      <td class="num ${deltaClass(r.net)}">${fmt(r.net)}</td>
-      <td class="num ${deltaClass(r.net)}">${pct(r.netPct)}</td>
-    </tr>`).join('');
+  /* ── Store cards ── */
+  document.getElementById('store-grid').innerHTML = STORES.map(st => {
+    const r = curRows.find(x => x.store === st);
+    if (!r) return `<div class="store-card"><div class="store-name">${st}</div><div style="font-size:11px;color:var(--text-muted);margin-top:8px">無資料</div></div>`;
 
-  /* Profit trend chart */
-  const labels = FINANCE_MOCK.map(r=>r.month.slice(5)+'月');
-  new Chart(document.getElementById('profit-chart'), {
-    type:'bar',
-    data:{
-      labels,
-      datasets:[
-        { label:'營收', data:FINANCE_MOCK.map(r=>r.revenue), backgroundColor:'rgba(40,66,52,.15)', borderColor:'rgba(40,66,52,.4)', borderWidth:1.5, borderRadius:4 },
-        { label:'淨利', data:FINANCE_MOCK.map(r=>r.net), backgroundColor:'rgba(26,122,74,.7)', borderRadius:4 },
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ labels:{ font:{size:11}, color:'#284234' } } },
-      scales:{
-        x:{ grid:{ display:false }, ticks:{ color:'#b09a88', font:{size:11} } },
-        y:{ grid:{ color:'rgba(40,66,52,.06)' }, ticks:{ color:'#b09a88', font:{size:11}, callback:v=>'$'+(v/10000).toFixed(0)+'萬' } }
+    const tgt = MONTHLY_TARGETS[st][latestMonth] * 10000;
+    const ach = pct(r.rev, tgt);
+    const barW = Math.min(ach, 100).toFixed(1);
+    const ac = achColor(ach);
+    const nc = npColor(r.niPct);
+    const sc = salColor(r.wagePct);
+    const mc = mktColor(r.mktPct);
+
+    const stYtd    = ytdRows.filter(x => x.store === st);
+    const stYtdRev = stYtd.reduce((s,x) => s+x.rev, 0);
+    const stYtdNI  = stYtd.reduce((s,x) => s+x.ni,  0);
+    const annRevAch = pct(stYtdRev, ANNUAL_REV_TARGETS[st]);
+    const annNIAch  = pct(stYtdNI,  ANNUAL_NI_TARGETS[st]);
+
+    const yoyStr = r.yoyRev !== null ? chg(r.yoyRev) : 'N/A';
+
+    return `
+    <div class="store-card">
+      <div class="store-hd">
+        <span class="store-name" style="color:${STORE_COLORS[st]}">${st}</span>
+        <span class="store-ach ${ac}">${ach.toFixed(1)}%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${barW}%;background:${cSSColor(ac)}"></div></div>
+      <div class="store-meta">${fmtW(r.rev)} / ${fmtW(tgt)}</div>
+      <div class="store-rates">
+        <div class="rate-row"><span class="rate-lbl">毛利率</span><span>${fmtPct(r.gpPct)}</span></div>
+        <div class="rate-row"><span class="rate-lbl">淨利率</span><span class="${nc}">${fmtPct(r.niPct)}</span></div>
+        <div class="rate-row"><span class="rate-lbl">薪資率</span><span class="${sc}">${fmtPct(r.wagePct)}</span></div>
+        <div class="rate-row"><span class="rate-lbl">行銷率</span><span class="${mc}">${fmtPct(r.mktPct)}</span></div>
+      </div>
+      <div class="store-foot">
+        <span>YOY ${yoyStr}</span>
+        <span>年 ${annRevAch.toFixed(1)}%</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  /* ── Trend charts ── */
+  const trendYMs = allYM.slice(-14);
+  const trendLabels = trendYMs.map(m => m.replace(/^\d{4}\//, '') + '月');
+
+  /* Revenue trend */
+  const revDatasets = STORES.map(st => ({
+    label: st,
+    data: trendYMs.map(ym => {
+      const r = rows.find(x => x.ym === ym && x.store === st);
+      return r ? Math.round(r.rev/1000)/10 : null;
+    }),
+    borderColor: STORE_COLORS[st],
+    backgroundColor: 'transparent',
+    borderWidth: 2, pointRadius: 3, tension: 0.3, spanGaps: false,
+  }));
+
+  const legend = (chartId, ids) => {
+    document.getElementById(chartId).innerHTML = ids.map(st => `
+      <div class="leg-item">
+        <div class="leg-dot" style="background:${STORE_COLORS[st]}"></div>${st}
+      </div>`).join('');
+  };
+  legend('rev-legend', STORES);
+  legend('np-legend', STORES);
+
+  new Chart(document.getElementById('rev-chart'), {
+    type: 'line',
+    data: { labels: trendLabels, datasets: revDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#b09a88', font: { size: 11 }, maxRotation: 0 } },
+        y: { grid: { color: 'rgba(40,66,52,.06)' }, ticks: { color: '#b09a88', font: { size: 11 }, callback: v => v + '萬' } }
       }
     }
   });
 
-  /* Expense donut */
-  const expLabels = Object.keys(EXPENSE_MOCK);
-  const expVals   = Object.values(EXPENSE_MOCK);
-  new Chart(document.getElementById('expense-chart'), {
-    type:'doughnut',
-    data:{
-      labels: expLabels,
-      datasets:[{ data:expVals, backgroundColor:['#284234','#A54A1A','#CFA294','#8D5531'], borderWidth:0, hoverOffset:6 }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{ position:'bottom', labels:{ font:{size:11}, color:'#284234', padding:16 } },
-        tooltip:{ callbacks:{ label: ctx=>' '+ctx.label+': $'+ctx.raw.toLocaleString('zh-TW') } }
+  /* NP rate trend */
+  const npDatasets = [
+    ...STORES.map(st => ({
+      label: st,
+      data: trendYMs.map(ym => {
+        const r = rows.find(x => x.ym === ym && x.store === st);
+        return r && r.niPct !== 0 ? Math.round(r.niPct*10)/10 : null;
+      }),
+      borderColor: STORE_COLORS[st],
+      backgroundColor: 'transparent',
+      borderWidth: 1.5, pointRadius: 2, tension: 0.3, spanGaps: false,
+    })),
+    {
+      label: '目標8%',
+      data: trendYMs.map(() => 8),
+      borderColor: 'rgba(192,57,43,.4)',
+      borderDash: [5,4], borderWidth: 1.5, pointRadius: 0,
+      backgroundColor: 'transparent',
+    }
+  ];
+
+  new Chart(document.getElementById('np-chart'), {
+    type: 'line',
+    data: { labels: trendLabels, datasets: npDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#b09a88', font: { size: 11 }, maxRotation: 0 } },
+        y: { grid: { color: 'rgba(40,66,52,.06)' }, ticks: { color: '#b09a88', font: { size: 11 }, callback: v => v + '%' }, min: -60, max: 40 }
       }
     }
   });
+
+  /* ── Expense cards ── */
+  const wageRate = pct(totalWage, totalRev);
+  const cogsRate = pct(totalCogs, totalRev);
+  const mktRate  = pct(totalMkt,  totalRev);
+  const ytdMkt   = ytdRows.reduce((s,r) => s+r.mkt, 0);
+  const sc2 = wageRate >= 30 ? 'neg' : wageRate >= 27 ? 'warn' : 'pos';
+  const cc2 = cogsRate >= 34 ? 'neg' : cogsRate >= 31 ? 'warn' : 'pos';
+  const mc2 = mktRate  >= 8  ? 'neg' : mktRate  >= 6  ? 'warn' : 'pos';
+
+  document.getElementById('exp-grid').innerHTML = `
+    <div class="exp-card">
+      <div class="exp-label">人事率（薪資）</div>
+      <div class="exp-val ${sc2}">${fmtPct(wageRate)}</div>
+      <span class="tag ${tagClass(sc2)}">${wageRate>=30?'超標':wageRate>=27?'接近上限':'正常'} 上限30%</span>
+      <div class="exp-sub" style="margin-top:8px">當月薪資合計 ${fmtW(totalWage)}</div>
+    </div>
+    <div class="exp-card">
+      <div class="exp-label">成本率（進貨）</div>
+      <div class="exp-val ${cc2}">${fmtPct(cogsRate)}</div>
+      <span class="tag ${tagClass(cc2)}">${cogsRate>=34?'超標':cogsRate>=31?'偏高':'正常'} 上限34%</span>
+      <div class="exp-sub" style="margin-top:8px">當月進貨合計 ${fmtW(totalCogs)}</div>
+    </div>
+    <div class="exp-card">
+      <div class="exp-label">行銷率（6117）</div>
+      <div class="exp-val ${mc2}">${fmtPct(mktRate)}</div>
+      <span class="tag ${tagClass(mc2)}">${mktRate>=8?'超標':mktRate>=6?'接近上限':'正常'} 上限6%</span>
+      <div class="exp-sub" style="margin-top:8px">YTD已用 ${fmtW(ytdMkt)} / 年度預算 ${fmtW(COMPANY_MKT_BUDGET)}</div>
+    </div>`;
+
+  /* ── Anomaly alerts ── */
+  const anomalies = [];
+  if (wageRate >= 30) anomalies.push({ cls:'red', msg:'全公司人事率 '+fmtPct(wageRate)+'，超標（上限30%）' });
+  else if (wageRate >= 27) anomalies.push({ cls:'yellow', msg:'全公司人事率 '+fmtPct(wageRate)+'，接近上限30%' });
+  if (cogsRate >= 34) anomalies.push({ cls:'red', msg:'全公司成本率 '+fmtPct(cogsRate)+'，超標（上限34%）' });
+  else if (cogsRate >= 31) anomalies.push({ cls:'yellow', msg:'全公司成本率 '+fmtPct(cogsRate)+'，偏高' });
+  if (totalNP < 5) anomalies.push({ cls:'red', msg:'全公司淨利率 '+fmtPct(totalNP)+'，嚴重不足（目標8%）' });
+  else if (totalNP < 8) anomalies.push({ cls:'yellow', msg:'全公司淨利率 '+fmtPct(totalNP)+'，未達目標8%' });
+
+  STORES.forEach(st => {
+    const r = curRows.find(x => x.store === st);
+    if (!r) return;
+    const tgt = MONTHLY_TARGETS[st][latestMonth] * 10000;
+    const ach = pct(r.rev, tgt);
+    if (r.wagePct >= 18) anomalies.push({ cls:'red', msg:st+' 薪資率 '+fmtPct(r.wagePct)+'，嚴重超標（上限15%）' });
+    else if (r.wagePct >= 15) anomalies.push({ cls:'yellow', msg:st+' 薪資率 '+fmtPct(r.wagePct)+'，超標' });
+    if (r.mktPct >= 8) anomalies.push({ cls:'red', msg:st+' 行銷率 '+fmtPct(r.mktPct)+'，超標（上限6%）' });
+    else if (r.mktPct >= 6) anomalies.push({ cls:'yellow', msg:st+' 行銷率 '+fmtPct(r.mktPct)+'，接近上限' });
+    if (r.niPct < 5) anomalies.push({ cls:'red', msg:st+' 淨利率 '+fmtPct(r.niPct)+'，嚴重不足' });
+    else if (r.niPct < 8) anomalies.push({ cls:'yellow', msg:st+' 淨利率 '+fmtPct(r.niPct)+'，未達目標8%' });
+    if (ach < 70) anomalies.push({ cls:'red', msg:st+' 達成率 '+fmtPct(ach)+'，嚴重不足' });
+    if (r.yoyRev !== null && r.yoyRev < -10) anomalies.push({ cls:'red', msg:st+' YOY營收衰退 '+chg(r.yoyRev) });
+  });
+
+  const anomalyEl = document.getElementById('anomaly-list');
+  if (anomalies.length === 0) {
+    anomalyEl.innerHTML = '<div class="anomaly-none">✅ 本月無重大異常</div>';
+  } else {
+    anomalyEl.innerHTML = anomalies.map(a =>
+      `<div class="anomaly-item anomaly-${a.cls}">${a.cls==='red'?'🔴':'🟡'} ${a.msg}</div>`
+    ).join('');
+  }
+
+  /* ── Summary table (last 18 months) ── */
+  const recentYMs = allYM.slice(-18).reverse();
+  const tbody = document.getElementById('summary-tbody');
+  tbody.innerHTML = recentYMs.flatMap(ym =>
+    STORES.map(st => {
+      const r = rows.find(x => x.ym === ym && x.store === st);
+      if (!r) return '';
+      const nc = npColor(r.niPct), ac = achColor(r.achPct);
+      const yoyStr = r.yoyRev !== null ? `<span class="${r.yoyRev>=0?'pos':'neg'}">${chg(r.yoyRev)}</span>` : '—';
+      return `<tr>
+        <td class="ym-cell">${r.ym}</td>
+        <td class="store-cell" style="color:${STORE_COLORS[st]}">${st}</td>
+        <td class="num">${fmtW(r.rev)}</td>
+        <td class="num">${fmtPct(r.gpPct)}</td>
+        <td class="num ${salColor(r.wagePct)}">${fmtPct(r.wagePct)}</td>
+        <td class="num ${mktColor(r.mktPct)}">${fmtPct(r.mktPct)}</td>
+        <td class="num ${nc}">${fmtW(r.ni)}</td>
+        <td class="num ${nc}">${fmtPct(r.niPct)}</td>
+        <td class="num ${ac}">${fmtPct(r.achPct)}</td>
+        <td class="num">${yoyStr}</td>
+      </tr>`;
+    })
+  ).join('');
+
+  /* ── Report archive links ── */
+  const reportYMs = allYM.slice().reverse();
+  document.getElementById('report-grid').innerHTML = reportYMs.map((ym, i) => {
+    const [y, m] = ym.split('/');
+    return `<a class="report-link" href="/oringo-dashboard/report/${y+m}/" target="_blank">
+      <span>${y}年${parseInt(m)}月${i===0?' <span class="latest-tag">最新</span>':''}</span>
+      <span>→</span>
+    </a>`;
+  }).join('');
 }
 </script>
 </body>
