@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>林果良品｜行銷儀表板</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--green:#284234;--dark:#002721;--sand:#E2CEB9;--sand-light:#F5EDE3;--rust:#A54A1A;--gray-pink:#CFA294;--brown:#8D5531;--bg:#F5EDE3;--surface:#ffffff;--surface2:#FAF5EF;--border:rgba(40,66,52,0.10);--border2:rgba(40,66,52,0.22);--text:#284234;--text-sub:#8D5531;--text-muted:#b09a88;--positive:#1a7a4a;--negative:#c0392b}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh}
+.hdr{position:sticky;top:0;z-index:100;background:var(--green);height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-name{font-family:'Space Mono',monospace;font-size:13px;letter-spacing:.1em;color:var(--sand)}
+.brand-sep{width:1px;height:16px;background:rgba(226,206,185,.3)}
+.brand-sub{font-size:10px;color:var(--gray-pink);font-family:'Space Mono',monospace}
+.hdr-r{display:flex;align-items:center;gap:14px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#5be8a0;box-shadow:0 0 8px #5be8a0;animation:blink 2.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hclock{font-family:'Space Mono',monospace;font-size:12px;color:var(--gray-pink)}
+.data-tag{padding:3px 10px;border-radius:20px;border:1px solid rgba(226,206,185,.25);font-size:10px;font-family:'Space Mono',monospace;color:var(--gray-pink)}
+.back-link{font-family:'Space Mono',monospace;font-size:11px;color:var(--gray-pink);text-decoration:none;border:1px solid rgba(226,206,185,.25);padding:3px 10px;border-radius:20px;transition:all .15s}
+.back-link:hover{color:var(--sand);border-color:var(--sand)}
+.tabs{background:var(--green);display:flex;padding:0 2rem;border-bottom:2px solid rgba(226,206,185,.12);overflow-x:auto}
+.tab{padding:10px 22px;font-size:12px;font-weight:500;color:rgba(226,206,185,.5);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;letter-spacing:.04em;white-space:nowrap}
+.tab:hover{color:var(--sand)}.tab.active{color:var(--sand);border-bottom-color:var(--rust)}
+.container{max-width:1400px;margin:0 auto;padding:1.75rem 2rem}
+.g2{display:grid;grid-template-columns:3fr 2fr;gap:1.25rem;margin-bottom:1.25rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+.g-half{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+@media(max-width:1000px){.g2,.g3,.g-half{grid-template-columns:1fr}}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.sec-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.sec-title::before{content:'';display:block;width:3px;height:14px;background:var(--rust);border-radius:2px}
+.sec-date{font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.35rem}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
+.card-lbl{font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+.card-lbl::before{content:'';display:block;width:3px;height:12px;background:var(--rust);border-radius:2px}
+.card-badge{font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.kpi5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem}
+.kpi4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.kpi3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem}
+@media(max-width:1100px){.kpi5{grid-template-columns:repeat(3,1fr)}.kpi4{grid-template-columns:repeat(2,1fr)}.kpi3{grid-template-columns:1fr}}
+.kc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1.1rem;position:relative;overflow:hidden}
+.kc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kc-color,var(--green))}
+.kc-l{font-size:9px;color:var(--text-muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.kc-v{font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:var(--text);line-height:1;margin-bottom:5px}
+.kc-d{display:flex;align-items:center;gap:6px}
+.delta{font-size:10px;font-family:'Space Mono',monospace;padding:2px 6px;border-radius:3px}
+.pos{background:rgba(26,122,74,.08);color:var(--positive)}.neg{background:rgba(192,57,43,.08);color:var(--negative)}.neu{background:var(--surface2);color:var(--text-muted)}
+.kc-vs{font-size:10px;color:var(--text-muted)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.footer{background:var(--green);text-align:center;padding:1.25rem;font-size:11px;font-family:'Space Mono',monospace;color:var(--gray-pink);margin-top:2rem}
+.mock-banner{background:#fffbe6;border:1px solid #d4a72c;border-radius:8px;padding:10px 16px;margin-bottom:1.25rem;display:flex;align-items:center;gap:12px;font-size:11px;font-family:'Space Mono',monospace;color:#b8860b}
+.ch180{position:relative;height:180px}.ch200{position:relative;height:200px}.ch240{position:relative;height:240px}
+.ctbl{width:100%;border-collapse:collapse;font-size:12px}
+.ctbl th{text-align:left;padding:7px 10px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--border);background:var(--surface2)}
+.ctbl td{padding:8px 10px;border-bottom:1px solid var(--border);font-family:'Space Mono',monospace}
+.ctbl tr:last-child td{border-bottom:none}
+.ctbl .td-s{font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:600;color:var(--text)}
+.ch-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:9px;font-family:'Space Mono',monospace}
+.ch-pill.good{background:rgba(26,122,74,.1);color:var(--positive)}
+.ch-pill.warn{background:rgba(184,134,11,.12);color:#b8860b}
+.ch-pill.bad{background:rgba(192,57,43,.1);color:var(--negative)}
+.iframe-wrap{width:100%;height:calc(100vh - 180px);min-height:600px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface)}
+.iframe-wrap iframe{width:100%;height:100%;border:0;display:block}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);font-family:'Space Mono',monospace}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="brand">
+    <span class="brand-name">ORINGO</span>
+    <div class="brand-sep"></div>
+    <span class="brand-sub">MARKETING DASHBOARD</span>
+  </div>
+  <div class="hdr-r">
+    <a href="index.html" class="back-link">← 營運儀表板</a>
+    <div class="live-dot"></div>
+    <div class="hclock" id="clock">--:--:--</div>
+    <div class="data-tag">MOCK DATA</div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" onclick="switchTab('overview',this)">📊 流量總覽</button>
+  <button class="tab" onclick="switchTab('ads',this)">💰 廣告成效</button>
+  <button class="tab" onclick="switchTab('revenue',this)">🛒 電商營收</button>
+  <button class="tab" onclick="switchTab('social',this)">📱 社群流量</button>
+  <button class="tab" onclick="switchTab('seo',this)">🔍 SEO 監控</button>
+</nav>
+
+<div class="container">
+
+<!-- 開發中提示 -->
+<div class="mock-banner">
+  ⚠️ 目前顯示為示意數據（mock data），後端資料管道建置中。SEO 分頁為實際資料。
+</div>
+
+<!-- ============ 流量總覽 ============ -->
+<div class="tab-panel active" id="panel-overview">
+  <div class="sec-hdr">
+    <div class="sec-title">本週關鍵指標</div>
+    <div class="sec-date" id="overview-date">2026 / 04 / 21 – 04 / 27</div>
+  </div>
+  <div class="kpi5" id="overview-kpi"></div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">每日流量趨勢（近 14 天）</span><span class="card-badge">sessions</span></div>
+      <div class="ch240"><canvas id="ch-traffic"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">流量來源拆解</span><span class="card-badge">本週</span></div>
+      <div class="ch200"><canvas id="ch-channel"></canvas></div>
+      <div class="legend" id="ch-channel-legend"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><span class="card-lbl">流量來源 vs 轉換明細</span><span class="card-badge">含 ROAS / CVR</span></div>
+    <div style="overflow-x:auto"><table class="ctbl" id="tbl-channel"></table></div>
+  </div>
+</div>
+
+<!-- ============ 廣告成效 ============ -->
+<div class="tab-panel" id="panel-ads">
+  <div class="sec-hdr">
+    <div class="sec-title">廣告投放總覽</div>
+    <div class="sec-date">本週</div>
+  </div>
+  <div class="kpi4" id="ads-kpi"></div>
+
+  <div class="g-half">
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">Meta Ads</span><span class="card-badge">FB + IG</span></div>
+      <div class="kpi3" id="meta-kpi"></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">Google Ads</span><span class="card-badge">Search + Performance Max</span></div>
+      <div class="kpi3" id="google-kpi"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><span class="card-lbl">廣告花費 vs ROAS（近 4 週）</span><span class="card-badge">趨勢</span></div>
+    <div class="ch240"><canvas id="ch-ads-trend"></canvas></div>
+  </div>
+</div>
+
+<!-- ============ 電商營收 ============ -->
+<div class="tab-panel" id="panel-revenue">
+  <div class="sec-hdr">
+    <div class="sec-title">電商營收快覽</div>
+    <div class="sec-date">本月</div>
+  </div>
+  <div class="kpi4" id="revenue-kpi"></div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">每日營收（本月）</span><span class="card-badge">官網 vs 4 店 POS</span></div>
+      <div class="ch240"><canvas id="ch-revenue"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-lbl">本月通路占比</span></div>
+      <div class="ch200"><canvas id="ch-channel-mix"></canvas></div>
+      <div class="legend" id="ch-mix-legend"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 社群流量 ============ -->
+<div class="tab-panel" id="panel-social">
+  <div class="sec-hdr">
+    <div class="sec-title">社群來源流量</div>
+    <div class="sec-date">本週</div>
+  </div>
+  <div class="kpi3" id="social-kpi"></div>
+
+  <div class="card">
+    <div class="card-hdr"><span class="card-lbl">IG / FB / LINE 比較</span><span class="card-badge">sessions · CVR · 轉換金額</span></div>
+    <div style="overflow-x:auto"><table class="ctbl" id="tbl-social"></table></div>
+  </div>
+</div>
+
+<!-- ============ SEO 監控（嵌入 seo.html）============ -->
+<div class="tab-panel" id="panel-seo">
+  <div class="sec-hdr">
+    <div class="sec-title">SEO 監控（嵌入 seo.html）</div>
+    <div class="sec-date"><a href="seo.html" target="_blank" style="color:var(--text-muted);text-decoration:none;font-size:11px">在新分頁打開 →</a></div>
+  </div>
+  <div class="iframe-wrap"><iframe src="seo.html" title="SEO 監控"></iframe></div>
+</div>
+
+</div>
+
+<footer class="footer">
+  林果良品 ORINGO｜行銷儀表板｜開發中（v0.1 mock）
+  <span style="opacity:.4;font-size:10px;display:block;margin-top:3px">INTERNAL USE ONLY · ©2026 ORINGO</span>
+</footer>
+
+<script>
+// ===== Clock =====
+function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('en-GB');}
+setInterval(tick,1000);tick();
+
+// ===== Mock data（之後用 gviz/CSV 從「行銷儀錶板數據」工作表讀） =====
+const MOCK = {
+  overview: {
+    sessions: { v: '23,840', delta: 8.4, vs: 'vs 上週', color: '#284234' },
+    newUsers: { v: '14,210', delta: 12.1, vs: 'vs 上週', color: '#5a8a6e' },
+    siteCVR: { v: '0.42%', delta: -0.03, vs: '目標 0.35%', color: '#A54A1A' },
+    cartAbandon: { v: '68.3%', delta: -2.1, vs: 'vs 上週', color: '#8D5531' },
+    revenue: { v: 'NT$1.82M', delta: 5.7, vs: '本週累計', color: '#1a7a4a' }
+  },
+  channels: [
+    { name: 'Organic Search', sessions: 8210, purchases: 47, revenue: 412000, roas: '—' },
+    { name: 'Paid Search', sessions: 4830, purchases: 38, revenue: 318000, roas: 4.2 },
+    { name: 'Direct', sessions: 5120, purchases: 24, revenue: 195000, roas: '—' },
+    { name: 'Paid Social', sessions: 3620, purchases: 31, revenue: 285000, roas: 5.1 },
+    { name: 'Referral', sessions: 1140, purchases: 8, revenue: 62000, roas: '—' },
+    { name: 'Organic Social', sessions: 920, purchases: 6, revenue: 48000, roas: '—' }
+  ],
+  trafficTrend: { labels: ['4/14','4/15','4/16','4/17','4/18','4/19','4/20','4/21','4/22','4/23','4/24','4/25','4/26','4/27'], data: [3120,2980,3340,3210,3580,4120,3890,3210,3450,3680,3920,3750,3210,2820] },
+  ads: {
+    summary: {
+      totalSpend: { v: 'NT$186K', delta: 4.2, vs: 'vs 上週', color: '#A54A1A' },
+      totalROAS: { v: '4.6', delta: 0.3, vs: '目標 4.5', color: '#1a7a4a' },
+      paidCVR: { v: '0.71%', delta: 0.08, vs: '目標 0.59%', color: '#5a8a6e' },
+      totalConv: { v: '69 筆', delta: 11.0, vs: 'vs 上週', color: '#284234' }
+    },
+    meta: {
+      spend: { v: 'NT$112K', delta: 6, vs: 'vs 上週', color: '#1877F2' },
+      roas: { v: '4.8', delta: 0.4, vs: '目標 4.5', color: '#1a7a4a' },
+      ctr: { v: '1.85%', delta: 0.2, vs: 'vs 上週', color: '#A54A1A' }
+    },
+    google: {
+      spend: { v: 'NT$74K', delta: 1.5, vs: 'vs 上週', color: '#4285F4' },
+      roas: { v: '4.3', delta: 0.1, vs: '目標 4.5', color: '#b8860b' },
+      ctr: { v: '3.22%', delta: 0.4, vs: 'vs 上週', color: '#A54A1A' }
+    },
+    trend: { labels: ['W14','W15','W16','W17'], spend: [172,178,180,186], roas: [4.3,4.4,4.5,4.6] }
+  },
+  revenue: {
+    kpi: {
+      monthRev: { v: 'NT$5.42M', delta: 8.2, vs: '月目標 NT$10M', color: '#284234' },
+      orders: { v: '482', delta: 6, vs: 'vs 上月同期', color: '#5a8a6e' },
+      aov: { v: 'NT$11,250', delta: 2.1, vs: 'vs 上月', color: '#A54A1A' },
+      returnRate: { v: '3.2%', delta: -0.4, vs: 'vs 上月', color: '#8D5531' }
+    },
+    daily: { labels: Array.from({length:27},(_,i)=>(i+1)+'日'), ec: Array.from({length:27},()=>Math.round(150+Math.random()*120)), pos: Array.from({length:27},()=>Math.round(420+Math.random()*180)) },
+    mix: [{ name: '官網', val: 542 },{ name: '中山', val: 168 },{ name: '松菸', val: 142 },{ name: '台中', val: 121 },{ name: '東門', val: 134 }]
+  },
+  social: {
+    kpi: {
+      ig: { v: '4,820', delta: 18, vs: 'sessions / 本週', color: '#E1306C' },
+      fb: { v: '2,140', delta: -3, vs: 'sessions / 本週', color: '#1877F2' },
+      line: { v: '1,260', delta: 7, vs: 'sessions / 本週', color: '#06C755' }
+    },
+    table: [
+      { name: 'IG (instagram)', sessions: 4820, cvr: '0.62%', revenue: 198000, color: '#E1306C' },
+      { name: 'FB (facebook)', sessions: 2140, cvr: '0.48%', revenue: 87000, color: '#1877F2' },
+      { name: 'LINE (line.me)', sessions: 1260, cvr: '0.89%', revenue: 124000, color: '#06C755' }
+    ]
+  }
+};
+
+// ===== Renderers =====
+function fmt(n){return typeof n==='number'?n.toLocaleString():n}
+function deltaHTML(d){if(d===null||d===undefined)return'';const cls=d>0?'pos':d<0?'neg':'neu';const sign=d>0?'▲ +':d<0?'▼ ':'';return`<span class="delta ${cls}">${sign}${typeof d==='number'?Math.abs(d).toFixed(1)+'%':d}</span>`}
+function renderKPIs(elId, items){
+  const el=document.getElementById(elId);
+  el.innerHTML=Object.entries(items).map(([k,v])=>`<div class="kc" style="--kc-color:${v.color}"><div class="kc-l">${k}</div><div class="kc-v">${v.v}</div><div class="kc-d">${deltaHTML(v.delta)}<span class="kc-vs">${v.vs}</span></div></div>`).join('');
+}
+
+// ----- Overview -----
+const OV_LABELS={sessions:'工作階段',newUsers:'新用戶',siteCVR:'整站 CVR',cartAbandon:'購物車放棄率',revenue:'本週營收'};
+function renderOverview(){
+  const remapped={};Object.keys(MOCK.overview).forEach(k=>remapped[OV_LABELS[k]||k]=MOCK.overview[k]);
+  renderKPIs('overview-kpi',remapped);
+
+  // 流量趨勢
+  new Chart(document.getElementById('ch-traffic'),{type:'line',data:{labels:MOCK.trafficTrend.labels,datasets:[{data:MOCK.trafficTrend.data,borderColor:'#284234',backgroundColor:'rgba(40,66,52,.1)',fill:true,tension:.35,pointRadius:3,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{font:{family:'Space Mono',size:10},color:'#b09a88'},grid:{color:'rgba(40,66,52,.05)'}},x:{ticks:{font:{family:'Space Mono',size:10},color:'#b09a88'},grid:{display:false}}}}});
+
+  // 流量來源 donut
+  const colors=['#284234','#A54A1A','#5a8a6e','#8D5531','#CFA294','#b09a88'];
+  new Chart(document.getElementById('ch-channel'),{type:'doughnut',data:{labels:MOCK.channels.map(c=>c.name),datasets:[{data:MOCK.channels.map(c=>c.sessions),backgroundColor:colors,borderWidth:3,borderColor:'#fff'}]},options:{cutout:'58%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed.toLocaleString()} (${(ctx.parsed/MOCK.channels.reduce((s,c)=>s+c.sessions,0)*100).toFixed(1)}%)`}}}}});
+  document.getElementById('ch-channel-legend').innerHTML=MOCK.channels.map((c,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${colors[i]}"></div>${c.name}</div>`).join('');
+
+  // 來源明細 table
+  document.getElementById('tbl-channel').innerHTML=`<thead><tr><th>來源</th><th>Sessions</th><th>購買</th><th>營收</th><th>ROAS</th></tr></thead><tbody>${MOCK.channels.map(c=>`<tr><td class="td-s">${c.name}</td><td>${fmt(c.sessions)}</td><td>${c.purchases}</td><td>NT$${fmt(c.revenue)}</td><td>${typeof c.roas==='number'?`<span class="ch-pill ${c.roas>=4.5?'good':c.roas>=3.5?'warn':'bad'}">${c.roas.toFixed(1)}</span>`:c.roas}</td></tr>`).join('')}</tbody>`;
+}
+
+// ----- Ads -----
+const ADS_KPI_LABELS={totalSpend:'總花費',totalROAS:'整體 ROAS',paidCVR:'付費 CVR',totalConv:'轉換數'};
+const META_LABELS={spend:'Meta 花費',roas:'Meta ROAS',ctr:'Meta CTR'};
+const GOOGLE_LABELS={spend:'Google 花費',roas:'Google ROAS',ctr:'Google CTR'};
+function renderAds(){
+  const remap=(obj,labels)=>Object.fromEntries(Object.entries(obj).map(([k,v])=>[labels[k]||k,v]));
+  renderKPIs('ads-kpi',remap(MOCK.ads.summary,ADS_KPI_LABELS));
+  renderKPIs('meta-kpi',remap(MOCK.ads.meta,META_LABELS));
+  renderKPIs('google-kpi',remap(MOCK.ads.google,GOOGLE_LABELS));
+
+  new Chart(document.getElementById('ch-ads-trend'),{type:'bar',data:{labels:MOCK.ads.trend.labels,datasets:[{label:'花費 (千)',data:MOCK.ads.trend.spend,backgroundColor:'rgba(165,74,26,.7)',yAxisID:'y'},{label:'ROAS',data:MOCK.ads.trend.roas,type:'line',borderColor:'#284234',backgroundColor:'#284234',tension:.3,yAxisID:'y1',pointRadius:5,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'Space Mono',size:11}}}},scales:{y:{position:'left',ticks:{font:{family:'Space Mono',size:10},color:'#b09a88'},grid:{color:'rgba(40,66,52,.05)'}},y1:{position:'right',ticks:{font:{family:'Space Mono',size:10},color:'#b09a88'},grid:{display:false},min:0,max:6},x:{ticks:{font:{family:'Space Mono',size:10},color:'#b09a88'},grid:{display:false}}}}});
+}
+
+// ----- Revenue -----
+const REV_LABELS={monthRev:'本月營收',orders:'訂單數',aov:'平均客單',returnRate:'退貨率'};
+function renderRevenue(){
+  renderKPIs('revenue-kpi',Object.fromEntries(Object.entries(MOCK.revenue.kpi).map(([k,v])=>[REV_LABELS[k]||k,v])));
+
+  new Chart(document.getElementById('ch-revenue'),{type:'line',data:{labels:MOCK.revenue.daily.labels,datasets:[{label:'官網',data:MOCK.revenue.daily.ec,borderColor:'#A54A1A',backgroundColor:'rgba(165,74,26,.08)',fill:true,tension:.3,pointRadius:2,borderWidth:2},{label:'4 店合計',data:MOCK.revenue.daily.pos,borderColor:'#284234',backgroundColor:'rgba(40,66,52,.06)',fill:true,tension:.3,pointRadius:2,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'Space Mono',size:11}}}},scales:{y:{ticks:{font:{family:'Space Mono',size:10},color:'#b09a88'},grid:{color:'rgba(40,66,52,.05)'}},x:{ticks:{font:{family:'Space Mono',size:10},color:'#b09a88'},grid:{display:false}}}}});
+
+  const mixColors=['#A54A1A','#284234','#5a8a6e','#8D5531','#CFA294'];
+  const total=MOCK.revenue.mix.reduce((s,m)=>s+m.val,0);
+  new Chart(document.getElementById('ch-channel-mix'),{type:'doughnut',data:{labels:MOCK.revenue.mix.map(m=>m.name),datasets:[{data:MOCK.revenue.mix.map(m=>m.val),backgroundColor:mixColors,borderWidth:3,borderColor:'#fff'}]},options:{cutout:'58%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed}萬 (${(ctx.parsed/total*100).toFixed(1)}%)`}}}}});
+  document.getElementById('ch-mix-legend').innerHTML=MOCK.revenue.mix.map((m,i)=>`<div class="leg-i"><div class="leg-dot" style="background:${mixColors[i]}"></div>${m.name} (${(m.val/total*100).toFixed(0)}%)</div>`).join('');
+}
+
+// ----- Social -----
+const SOCIAL_LABELS={ig:'Instagram',fb:'Facebook',line:'LINE'};
+function renderSocial(){
+  renderKPIs('social-kpi',Object.fromEntries(Object.entries(MOCK.social.kpi).map(([k,v])=>[SOCIAL_LABELS[k]||k,v])));
+  document.getElementById('tbl-social').innerHTML=`<thead><tr><th>平台</th><th>Sessions</th><th>CVR</th><th>轉換金額</th></tr></thead><tbody>${MOCK.social.table.map(s=>`<tr><td class="td-s"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s.color};margin-right:8px"></span>${s.name}</td><td>${fmt(s.sessions)}</td><td>${s.cvr}</td><td>NT$${fmt(s.revenue)}</td></tr>`).join('')}</tbody>`;
+}
+
+// ===== Tab switcher（lazy render） =====
+const RENDERED={overview:false,ads:false,revenue:false,social:false};
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(!RENDERED[tab]){
+    if(tab==='overview')renderOverview();
+    if(tab==='ads')renderAds();
+    if(tab==='revenue')renderRevenue();
+    if(tab==='social')renderSocial();
+    RENDERED[tab]=true;
+  }
+}
+renderOverview();RENDERED.overview=true;
+</script>
+</body>
+</html>

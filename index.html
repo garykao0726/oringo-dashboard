@@ -355,7 +355,17 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
     <div class="sec-title">延伸分析</div>
     <div class="sec-date">獨立分析頁面</div>
   </div>
-  <div style="max-width:560px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:1100px">
+    <a href="marketing.html" style="text-decoration:none;display:block">
+      <div class="card" style="cursor:pointer;transition:all .2s;border:1.5px solid var(--border);display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem" onmouseover="this.style.borderColor='var(--green)';this.style.background='#edf5ef'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+        <div style="width:48px;height:48px;border-radius:10px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📣</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">行銷儀表板</div>
+          <div style="font-size:11px;color:var(--text-muted);font-family:'Space Mono',monospace;line-height:1.5">流量總覽、廣告成效、電商營收、社群、SEO 整合監控</div>
+        </div>
+        <div style="font-size:16px;color:var(--text-muted)">→</div>
+      </div>
+    </a>
     <a href="seo.html" style="text-decoration:none;display:block">
       <div class="card" style="cursor:pointer;transition:all .2s;border:1.5px solid var(--border);display:flex;align-items:center;gap:1.25rem;padding:1.25rem 1.5rem" onmouseover="this.style.borderColor='var(--green)';this.style.background='#edf5ef'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
         <div style="width:48px;height:48px;border-radius:10px;background:var(--rust);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🔍</div>
