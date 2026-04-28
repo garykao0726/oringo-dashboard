@@ -1,0 +1,16 @@
+{
+  "scriptId": "1ro_5mosgCvWza7CDe9GVbRHD6ZFR6OFsd7VMvGchwtAQ9tOdA5za_D1Y",
+  "rootDir": "marketing-gas",
+  "scriptExtensions": [
+    ".js",
+    ".gs"
+  ],
+  "htmlExtensions": [
+    ".html"
+  ],
+  "jsonExtensions": [
+    ".json"
+  ],
+  "filePushOrder": [],
+  "skipSubdirectories": false
+}

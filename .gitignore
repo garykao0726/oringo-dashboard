@@ -1,0 +1,16 @@
+# GAS 程式碼不進 git（內含 API token / Webhook 等敏感資訊）
+# 來源真理：Google Apps Script 雲端（https://script.google.com）
+# 同步方式：clasp pull / clasp push
+apps-script.gs
+marketing-gas/
+
+# clasp 登入憑證（理論上只在 ~/，保險起見）
+.clasprc.json
+
+# OS / Editor
+.DS_Store
+*.swp
+*.swo
+
+# Node（clasp 需要 node 環境，未來如果有 package.json）
+node_modules/
